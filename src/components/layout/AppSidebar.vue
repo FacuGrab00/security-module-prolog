@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText } from '@lucide/vue'
+import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText, ShieldHalf } from '@lucide/vue'
 import { useSecurityStore } from '../../stores/security'
 
 const route  = useRoute()
@@ -52,6 +52,7 @@ const navItems = computed(() => [
   { to: '/logs',    label: 'Logs de Acceso', icon: ScrollText },
   { to: '/queries', label: 'Consultas Prolog',icon: Search },
   { to: '/rules',   label: 'Base de Reglas', icon: BookOpen },
+  { to: '/listas',  label: 'Listas de IPs',  icon: ShieldHalf },
   { to: '/report',  label: 'Reporte',        icon: FileText },
 ])
 

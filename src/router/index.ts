@@ -8,6 +8,7 @@ export default createRouter({
     { path: '/logs',     name: 'logs',      component: () => import('../views/LogsView.vue') },
     { path: '/queries',  name: 'queries',   component: () => import('../views/QueriesView.vue') },
     { path: '/rules',    name: 'rules',     component: () => import('../views/RulesView.vue') },
+    { path: '/listas',   name: 'listas',    component: () => import('../views/IPListsView.vue') },
     { path: '/report',   name: 'report',    component: () => import('../views/ReportView.vue') },
   ],
 })
