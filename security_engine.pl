@@ -21,6 +21,10 @@
 % ip_prohibida(IP, Motivo)
 :- dynamic ip_prohibida/2.
 
+% IPs de confianza (lista blanca) — dynamic para permitir altas/bajas en runtime
+% ip_confiable(IP)
+:- dynamic ip_confiable/1.
+
 % Roles de usuarios del sistema
 % rol_usuario(Usuario, Rol)
 :- dynamic rol_usuario/2.
@@ -285,21 +289,36 @@ alertas_de_usuario(Usuario, alerta(sesion_simultanea, Usuario)) :-
 %  Ejemplo:  1748185392,jgonzalez,192.168.1.45,login,fallo
 % =============================================================================
 
-importar_csv(Archivo) :-
-    retractall(log_entrada(_, _, _, _, _)),
+% importar_csv/3 — acumula sin borrar datos previos.
+% Devuelve Nuevos (filas insertadas) y Omitidos (duplicados salteados).
+importar_csv(Archivo, Nuevos, Omitidos) :-
+    findall(_, log_entrada(_,_,_,_,_), Antes), length(Antes, NAntes),
     csv_read_file(Archivo, Filas, [functor(fila), arity(5)]),
     maplist(registrar_fila_log, Filas),
-    length(Filas, N),
-    format(user_error, "~n  [CSV] ~w registros importados.~n", [N]).
+    findall(_, log_entrada(_,_,_,_,_), Despues), length(Despues, NDespues),
+    Nuevos is NDespues - NAntes,
+    length(Filas, TotalFilas),
+    DataFilas is TotalFilas - 1,          % descontar fila de cabecera
+    Omitidos is max(0, DataFilas - Nuevos),
+    format(user_error, "~n  [CSV] ~w nuevos, ~w duplicados omitidos.~n", [Nuevos, Omitidos]).
 
-% Ignora la fila de cabecera (timestamp no es numérico)
+% Wrapper de aridad 1 para compatibilidad (ej: responder_cargar_csv por archivo)
+importar_csv(Archivo) :-
+    importar_csv(Archivo, _, _).
+
+% Cláusula 1 — Ignora la fila de cabecera (timestamp no es numérico)
 registrar_fila_log(fila(TsAtom, _, _, _, _)) :-
     atom(TsAtom), \+ atom_number(TsAtom, _), !.
+
+% Cláusula 2 — Inserta sólo si no existe un hecho idéntico (deduplicación por contenido)
 registrar_fila_log(fila(TsAtom, Usuario, IP, AccionAtom, ResultAtom)) :-
     (atom(TsAtom) -> atom_number(TsAtom, Ts) ; Ts = TsAtom),
     (atom(AccionAtom) -> Accion = AccionAtom ; term_to_atom(Accion, AccionAtom)),
     (atom(ResultAtom) -> Resultado = ResultAtom ; term_to_atom(Resultado, ResultAtom)),
-    assertz(log_entrada(Ts, Usuario, IP, Accion, Resultado)).
+    (   \+ log_entrada(Ts, Usuario, IP, Accion, Resultado)
+    ->  assertz(log_entrada(Ts, Usuario, IP, Accion, Resultado))
+    ;   true    % duplicado exacto: se omite silenciosamente
+    ).
 
 % =============================================================================
 %  SECCIÓN 6 — GENERACIÓN DE REPORTE DE TEXTO
@@ -310,85 +329,85 @@ exportar_reporte(ArchivoSalida) :-
     get_time(Ahora),
     format_time(atom(Fecha), '%Y-%m-%d %H:%M:%S', Ahora),
 
-    format(Stream, "================================================================~n"),
-    format(Stream, "  REPORTE DE AUDITORÍA DE SEGURIDAD — MOTOR PROLOG~n"),
-    format(Stream, "  UNCAUS — Inteligencia Artificial 2026~n"),
-    format(Stream, "  Generado: ~w~n", [Fecha]),
-    format(Stream, "================================================================~n~n"),
+    format(Stream, "================================================================~n", []),
+    format(Stream, "  REPORTE DE AUDITORÍA DE SEGURIDAD — MOTOR PROLOG~n",             []),
+    format(Stream, "  UNCAUS — Inteligencia Artificial 2026~n",                         []),
+    format(Stream, "  Generado: ~w~n",                                                  [Fecha]),
+    format(Stream, "================================================================~n~n", []),
 
     findall(_, log_entrada(_, _, _, _, _),    Todos),   length(Todos,    Total),
     findall(_, log_entrada(_, _, _, _, fallo), ListaF), length(ListaF,   Fallos),
     findall(_, log_entrada(_, _, _, _, exito), ListaE), length(ListaE,   Exitos),
 
-    format(Stream, "--- RESUMEN ---~n"),
-    format(Stream, "  Eventos procesados : ~w~n", [Total]),
-    format(Stream, "  Accesos exitosos   : ~w~n", [Exitos]),
-    format(Stream, "  Accesos fallidos   : ~w~n", [Fallos]),
-    format(Stream, "~n"),
+    format(Stream, "--- RESUMEN ---~n",                    []),
+    format(Stream, "  Eventos procesados : ~w~n",          [Total]),
+    format(Stream, "  Accesos exitosos   : ~w~n",          [Exitos]),
+    format(Stream, "  Accesos fallidos   : ~w~n",          [Fallos]),
+    format(Stream, "~n",                                   []),
 
     % --- Alertas críticas
-    format(Stream, "--- ALERTAS CRÍTICAS ---~n"),
+    format(Stream, "--- ALERTAS CRÍTICAS ---~n",           []),
 
     findall(U-IP, ataque_fuerza_bruta(U, IP), FB),
     (FB \= [] ->
-        (format(Stream, "[CRITICO] Ataques de fuerza bruta:~n"),
+        (format(Stream, "[CRITICO] Ataques de fuerza bruta:~n", []),
          forall(member(U-IP, FB),
                 format(Stream, "  Usuario: ~w   IP: ~w~n", [U, IP])))
     ; true),
 
     findall(IP-M, acceso_ip_prohibida(IP, M), BL),
     (BL \= [] ->
-        (format(Stream, "[CRITICO] Accesos desde IPs prohibidas:~n"),
+        (format(Stream, "[CRITICO] Accesos desde IPs prohibidas:~n", []),
          forall(member(IP-M, BL),
                 format(Stream, "  IP: ~w   Motivo: ~w~n", [IP, M])))
     ; true),
 
     findall(IP, ataque_masivo_ip(IP), ATM),
     (ATM \= [] ->
-        (format(Stream, "[CRITICO] Ataques masivos distribuidos:~n"),
+        (format(Stream, "[CRITICO] Ataques masivos distribuidos:~n", []),
          forall(member(IP, ATM),
                 format(Stream, "  IP origen: ~w~n", [IP])))
     ; true),
 
     findall(U, sesion_simultanea(U), SS),
     (SS \= [] ->
-        (format(Stream, "[CRITICO] Sesiones simultáneas detectadas:~n"),
+        (format(Stream, "[CRITICO] Sesiones simultáneas detectadas:~n", []),
          forall(member(U, SS),
                 format(Stream, "  Usuario: ~w~n", [U])))
     ; true),
 
     % --- Alertas altas
-    format(Stream, "~n--- ALERTAS ALTA SEVERIDAD ---~n"),
+    format(Stream, "~n--- ALERTAS ALTA SEVERIDAD ---~n",   []),
 
     findall(U-T, acceso_horario_irregular(U, T), AIH),
     (AIH \= [] ->
-        (format(Stream, "[ALTO] Accesos administrativos fuera de horario:~n"),
+        (format(Stream, "[ALTO] Accesos administrativos fuera de horario:~n", []),
          forall(member(U-T, AIH),
                 format(Stream, "  Usuario: ~w   Timestamp: ~w~n", [U, T])))
     ; true),
 
     findall(U-IP, acceso_tras_intentos(U, IP), ATI),
     (ATI \= [] ->
-        (format(Stream, "[ALTO] Acceso exitoso tras intentos fallidos:~n"),
+        (format(Stream, "[ALTO] Acceso exitoso tras intentos fallidos:~n", []),
          forall(member(U-IP, ATI),
                 format(Stream, "  Usuario: ~w   IP: ~w~n", [U, IP])))
     ; true),
 
     % --- Alertas medias/bajas
-    format(Stream, "~n--- ALERTAS MEDIA/BAJA SEVERIDAD ---~n"),
+    format(Stream, "~n--- ALERTAS MEDIA/BAJA SEVERIDAD ---~n", []),
 
     findall(U-IP, usuario_desconocido(U, IP), UD),
     (UD \= [] ->
-        (format(Stream, "[BAJO] Usuarios no registrados:~n"),
+        (format(Stream, "[BAJO] Usuarios no registrados:~n", []),
          forall(member(U-IP, UD),
                 format(Stream, "  Usuario: ~w   IP: ~w~n", [U, IP])))
     ; true),
 
-    format(Stream, "~n================================================================~n"),
-    format(Stream, "  FIN DEL REPORTE~n"),
-    format(Stream, "================================================================~n"),
+    format(Stream, "~n================================================================~n", []),
+    format(Stream, "  FIN DEL REPORTE~n",                                                []),
+    format(Stream, "================================================================~n",  []),
     close(Stream),
-    format(user_error, "  [Reporte] Guardado en: ~w~n", [ArchivoSalida]).
+    format(user_error, "  [Reporte] generado en: ~w~n", [ArchivoSalida]).
 
 % =============================================================================
 %  SECCIÓN 7 — API HTTP/JSON
@@ -397,16 +416,22 @@ exportar_reporte(ArchivoSalida) :-
 
 :- set_setting(http:cors, [*]).
 
-:- http_handler('/api/load_csv',      responder_cargar_csv,       [method(post)]).
-:- http_handler('/api/load_csv_data', responder_cargar_datos_csv, [method(post)]).
-:- http_handler('/api/alerts',        responder_alertas,           [method(get)]).
-:- http_handler('/api/stats',         responder_estadisticas,      [method(get)]).
-:- http_handler('/api/query',         responder_consulta,          [method(get)]).
-:- http_handler('/api/report',        responder_reporte,           [method(post)]).
-:- http_handler('/api/timeline',      responder_linea_temporal,    [method(get)]).
-:- http_handler('/api/logs',          responder_logs,              [method(get)]).
-:- http_handler('/api/bloquear_ip',   responder_bloquear_ip,       [method(post)]).
-:- http_handler('/',                  servir_archivos,             [prefix]).
+:- http_handler('/api/load_csv',         responder_cargar_csv,        [method(post)]).
+:- http_handler('/api/load_csv_data',    responder_cargar_datos_csv,  [method(post)]).
+:- http_handler('/api/clear_data',       responder_limpiar_datos,     [method(post)]).
+:- http_handler('/api/alerts',           responder_alertas,            [method(get)]).
+:- http_handler('/api/stats',            responder_estadisticas,       [method(get)]).
+:- http_handler('/api/query',            responder_consulta,           [method(get)]).
+:- http_handler('/api/report',           responder_reporte,            [method(post)]).
+:- http_handler('/api/timeline',         responder_linea_temporal,     [method(get)]).
+:- http_handler('/api/logs',             responder_logs,               [method(get)]).
+:- http_handler('/api/bloquear_ip',      responder_bloquear_ip,        [method(post)]).
+:- http_handler('/api/blacklist',        responder_listar_blacklist,   [method(get)]).
+:- http_handler('/api/blacklist_remove', responder_remover_blacklist,  [method(post)]).
+:- http_handler('/api/whitelist',        responder_listar_whitelist,   [method(get)]).
+:- http_handler('/api/whitelist_add',    responder_agregar_whitelist,  [method(post)]).
+:- http_handler('/api/whitelist_remove', responder_remover_whitelist,  [method(post)]).
+:- http_handler('/',                     servir_archivos,              [prefix]).
 
 servir_archivos(Request) :-
     memberchk(path(Path), Request),
@@ -495,7 +520,13 @@ responder_consulta(Request) :-
         term_to_atom(Informe, R),
         reply_json_dict(_{query: Tipo, user: Usuario, result: R})
 
-    ;   reply_json_dict(_{error: 'Tipo desconocido. Opciones: multiples_subredes, ips_comprometidas, resumen'})
+    ;   Tipo = historial_usuario
+    ->  http_parameters(Request, [user(Usuario, [atom])]),
+        historial_usuario(Usuario, Timeline),
+        term_to_atom(Timeline, R),
+        reply_json_dict(_{query: Tipo, user: Usuario, result: R})
+
+    ;   reply_json_dict(_{error: 'Tipo desconocido. Opciones: multiples_subredes, ips_comprometidas, resumen, historial_usuario'})
     ).
 
 % POST /api/load_csv  { "file": "/ruta/al/archivo.csv" }
@@ -504,9 +535,9 @@ responder_cargar_csv(Request) :-
     http_read_json_dict(Request, Cuerpo),
     (   get_dict(file, Cuerpo, Archivo)
     ->  catch(
-            (importar_csv(Archivo),
-             findall(_, log_entrada(_,_,_,_,_), All), length(All, N),
-             reply_json_dict(_{ok: true, records_loaded: N})),
+            (importar_csv(Archivo, Nuevos, Omitidos),
+             findall(_, log_entrada(_,_,_,_,_), All), length(All, Total),
+             reply_json_dict(_{ok: true, records_added: Nuevos, records_skipped: Omitidos, total_in_db: Total})),
             Error,
             (term_to_atom(Error, ErrAtom),
              reply_json_dict(_{ok: false, error: ErrAtom}))
@@ -526,9 +557,9 @@ responder_cargar_datos_csv(Request) :-
     setup_call_cleanup(
         true,
         catch(
-            (importar_csv(ArchivoTemp),
-             findall(_, log_entrada(_,_,_,_,_), All), length(All, N),
-             reply_json_dict(_{ok: true, records_loaded: N})),
+            (importar_csv(ArchivoTemp, Nuevos, Omitidos),
+             findall(_, log_entrada(_,_,_,_,_), All), length(All, Total),
+             reply_json_dict(_{ok: true, records_added: Nuevos, records_skipped: Omitidos, total_in_db: Total})),
             Error,
             (term_to_atom(Error, ErrAtom),
              reply_json_dict(_{ok: false, error: ErrAtom}))
@@ -536,17 +567,35 @@ responder_cargar_datos_csv(Request) :-
         catch(delete_file(ArchivoTemp), _, true)
     ).
 
+% POST /api/clear_data — elimina todos los log_entrada de la memoria
+responder_limpiar_datos(_Request) :-
+    cors_enable,
+    retractall(log_entrada(_, _, _, _, _)),
+    reply_json_dict(_{ok: true, message: 'Todos los registros fueron eliminados'}).
+
 % POST /api/report  { "output": "ruta/opcional.txt" }
+% Genera el reporte en un archivo temporal del sistema (siempre disponible)
+% para no depender de que exista ningún directorio en el proyecto.
+% El contenido se devuelve como string en la respuesta JSON.
 responder_reporte(Request) :-
     cors_enable,
     http_read_json_dict(Request, Cuerpo),
-    (get_dict(output, Cuerpo, Salida) -> true ; Salida = 'reports/reporte_auditoria.txt'),
+    tmp_file_stream(text, Temp, TmpStream), close(TmpStream),
     catch(
-        (exportar_reporte(Salida),
-         read_file_to_string(Salida, Contenido, [encoding(utf8)]),
-         reply_json_dict(_{ok: true, file: Salida, content: Contenido})),
+        (exportar_reporte(Temp),
+         read_file_to_string(Temp, Contenido, [encoding(utf8)]),
+         catch(delete_file(Temp), _, true),
+         % Si el cliente pidió guardar en una ruta específica, lo intentamos
+         (get_dict(output, Cuerpo, Salida) ->
+             catch(
+                 (open(Salida, write, WStream), write(WStream, Contenido), close(WStream)),
+                 _, true
+             )
+         ; true),
+         reply_json_dict(_{ok: true, content: Contenido})),
         Error,
-        (term_to_atom(Error, Err),
+        (catch(delete_file(Temp), _, true),
+         term_to_atom(Error, Err),
          reply_json_dict(_{ok: false, error: Err}))
     ).
 
@@ -565,7 +614,56 @@ responder_bloquear_ip(Request) :-
     ).
 
 % =============================================================================
-%  SECCIÓN 8 — PUNTO DE ENTRADA
+%  SECCIÓN 8 — GESTIÓN DE LISTAS BLANCA Y NEGRA
+% =============================================================================
+
+% GET /api/blacklist — devuelve todas las IPs prohibidas
+responder_listar_blacklist(_Request) :-
+    cors_enable,
+    findall(_{ip: IP, motivo: M}, ip_prohibida(IP, M), Lista),
+    reply_json_dict(_{ok: true, blacklist: Lista}).
+
+% POST /api/blacklist_remove  { "ip": "x.x.x.x" }
+responder_remover_blacklist(Request) :-
+    cors_enable,
+    http_read_json_dict(Request, Cuerpo),
+    get_dict(ip, Cuerpo, IP),
+    (   ip_prohibida(IP, _)
+    ->  retractall(ip_prohibida(IP, _)),
+        reply_json_dict(_{ok: true, ip: IP, message: 'IP eliminada de la lista negra'})
+    ;   reply_json_dict(_{ok: false, message: 'La IP no estaba en la lista negra'})
+    ).
+
+% GET /api/whitelist — devuelve todas las IPs de confianza
+responder_listar_whitelist(_Request) :-
+    cors_enable,
+    findall(IP, ip_confiable(IP), Lista),
+    reply_json_dict(_{ok: true, whitelist: Lista}).
+
+% POST /api/whitelist_add  { "ip": "x.x.x.x" }
+responder_agregar_whitelist(Request) :-
+    cors_enable,
+    http_read_json_dict(Request, Cuerpo),
+    get_dict(ip, Cuerpo, IP),
+    (   ip_confiable(IP)
+    ->  reply_json_dict(_{ok: false, message: 'La IP ya estaba en la lista blanca'})
+    ;   assertz(ip_confiable(IP)),
+        reply_json_dict(_{ok: true, ip: IP, message: 'IP agregada a la lista blanca'})
+    ).
+
+% POST /api/whitelist_remove  { "ip": "x.x.x.x" }
+responder_remover_whitelist(Request) :-
+    cors_enable,
+    http_read_json_dict(Request, Cuerpo),
+    get_dict(ip, Cuerpo, IP),
+    (   ip_confiable(IP)
+    ->  retract(ip_confiable(IP)),
+        reply_json_dict(_{ok: true, ip: IP, message: 'IP eliminada de la lista blanca'})
+    ;   reply_json_dict(_{ok: false, message: 'La IP no estaba en la lista blanca'})
+    ).
+
+% =============================================================================
+%  SECCIÓN 9 — PUNTO DE ENTRADA
 % =============================================================================
 
 iniciar_servidor(Puerto) :-
