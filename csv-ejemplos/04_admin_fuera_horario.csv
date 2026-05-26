@@ -1,0 +1,11 @@
+timestamp,usuario,ip,accion,resultado
+1779696060,jgonzalez,192.168.1.45,login,exito
+1779696120,mperez,192.168.1.50,login,exito
+1779674400,admin_ti,192.168.0.10,login,exito
+1779674460,admin_ti,192.168.0.10,descarga,exito
+1779674520,admin_ti,192.168.0.10,descarga,exito
+1779746400,director_sis,192.168.0.11,login,exito
+1779746500,director_sis,192.168.0.11,descarga,exito
+1779750000,root,192.168.0.12,login,exito
+1779703200,admin_ti,192.168.0.10,login,exito
+1779706800,lrodriguez,192.168.2.10,login,exito

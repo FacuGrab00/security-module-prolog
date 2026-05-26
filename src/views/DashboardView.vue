@@ -13,7 +13,7 @@
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <!-- Alertas (2/3) -->
         <div class="xl:col-span-2">
-          <AlertsPanel @block-ip="openBlockModal" @notify-user="openNotifyModal" />
+          <AlertsPanel @block-ip="openBlockModal" />
         </div>
 
         <!-- Columna lateral (1/3) -->
@@ -31,12 +31,6 @@
       @close="blockModal.open = false"
       @confirmed="onBlocked"
     />
-    <NotifyUserModal
-      v-if="notifyModal.open"
-      :user="notifyModal.user"
-      @close="notifyModal.open = false"
-      @confirmed="notifyModal.open = false"
-    />
   </div>
 </template>
 
@@ -48,17 +42,14 @@ import AlertsPanel     from '../components/dashboard/AlertsPanel.vue'
 import BlockedIPsPanel from '../components/dashboard/BlockedIPsPanel.vue'
 import CSVUploader     from '../components/dashboard/CSVUploader.vue'
 import BlockIPModal    from '../components/actions/BlockIPModal.vue'
-import NotifyUserModal from '../components/actions/NotifyUserModal.vue'
 import { useSecurityStore } from '../stores/security'
 
-const store       = useSecurityStore()
-const blockModal  = reactive({ open: false, ip: '' })
-const notifyModal = reactive({ open: false, user: '' })
+const store      = useSecurityStore()
+const blockModal = reactive({ open: false, ip: '' })
 
 // Carga datos reales del motor Prolog al iniciar
 onMounted(() => store.fetchAll())
 
-function openBlockModal(ip: string)    { blockModal.ip = ip;     blockModal.open = true }
-function openNotifyModal(user: string) { notifyModal.user = user; notifyModal.open = true }
-function onBlocked(_ip: string)        { blockModal.open = false }
+function openBlockModal(ip: string) { blockModal.ip = ip; blockModal.open = true }
+function onBlocked(_ip: string)     { blockModal.open = false }
 </script>

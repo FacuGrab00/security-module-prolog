@@ -2,7 +2,6 @@
   <header class="h-14 bg-dark-900 border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 z-20">
     <div>
       <h1 class="text-white font-semibold text-base">{{ title }}</h1>
-      <p class="text-slate-500 text-xs">{{ subtitle }}</p>
     </div>
 
     <div class="flex items-center gap-4">
@@ -22,11 +21,6 @@
           class="text-xs font-medium"
           :class="store.prologOnline ? 'text-emerald-400' : 'text-red-400'"
         >{{ store.prologOnline ? 'Activo' : 'Desconectado' }}</span>
-      </div>
-
-      <!-- Última actualización -->
-      <div class="text-xs text-slate-500">
-        Actualizado: <span class="text-slate-300">{{ store.stats.lastUpdate }}</span>
       </div>
 
       <!-- Botón alerta crítica pulsante -->

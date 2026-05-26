@@ -1,0 +1,17 @@
+timestamp,usuario,ip,accion,resultado
+1779703200,jgonzalez,203.0.113.45,login,fallo
+1779703260,jgonzalez,203.0.113.45,login,fallo
+1779703320,jgonzalez,203.0.113.45,login,fallo
+1779703380,jgonzalez,203.0.113.45,login,fallo
+1779703440,jgonzalez,203.0.113.45,login,fallo
+1779703500,jgonzalez,203.0.113.45,login,fallo
+1779703560,jgonzalez,203.0.113.45,login,exito
+1779703600,mperez,198.51.100.20,login,fallo
+1779703660,mperez,198.51.100.20,login,fallo
+1779703720,mperez,198.51.100.20,login,fallo
+1779703780,mperez,198.51.100.20,login,fallo
+1779703840,mperez,198.51.100.20,login,fallo
+1779703900,mperez,198.51.100.20,login,exito
+1779703950,admin_ti,192.168.0.10,login,exito
+1779704000,lrodriguez,192.168.1.30,login,exito
+1779704100,lrodriguez,192.168.1.30,descarga,exito

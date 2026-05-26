@@ -36,14 +36,13 @@
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-slate-700 bg-slate-800/80">
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Timestamp</th>
+                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Fecha y hora</th>
                 <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Usuario</th>
                 <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">IP</th>
                 <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Rol</th>
                 <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Acción</th>
                 <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">País</th>
                 <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Resultado</th>
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Hecho Prolog</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-700/50">
@@ -53,7 +52,10 @@
                 class="hover:bg-slate-700/30 transition-colors"
                 :class="log.result === 'failure' ? 'bg-red-500/5' : ''"
               >
-                <td class="px-4 py-2.5 text-xs text-slate-400 font-mono whitespace-nowrap">{{ log.timestamp }}</td>
+                <td class="px-4 py-2.5 whitespace-nowrap" :title="log.timestamp">
+                  <span class="text-xs text-slate-300">{{ formatTs(log.timestamp) }}</span>
+                  <span class="block text-xs text-slate-600 font-mono">{{ log.timestamp }}</span>
+                </td>
                 <td class="px-4 py-2.5">
                   <span class="text-white font-medium text-xs">{{ log.user }}</span>
                 </td>
@@ -82,11 +84,6 @@
                       : 'bg-red-500/20 text-red-400'"
                   >{{ log.result === 'success' ? 'Éxito' : 'Fallo' }}</span>
                 </td>
-                <td class="px-4 py-2.5">
-                  <code class="text-xs text-cyan-400 font-mono bg-slate-900/60 px-2 py-0.5 rounded">
-                    log('{{ log.timestamp }}', {{ log.user }}, '{{ log.ip }}', {{ log.result === 'success' ? 'exito' : 'fallo' }}, {{ log.action.toLowerCase() }}).
-                  </code>
-                </td>
               </tr>
             </tbody>
           </table>
@@ -110,43 +107,13 @@
         </div>
       </div>
 
-      <!-- Info de transformación CSV → Prolog -->
-      <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-        <h3 class="text-white font-semibold text-sm mb-3 flex items-center gap-2">
-          <ArrowRight class="w-4 h-4 text-cyan-400" />
-          Proceso de transformación CSV → Hechos Prolog
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div class="bg-slate-900/60 border border-slate-700 rounded-lg p-3">
-            <p class="text-slate-400 font-medium mb-2">1. Entrada CSV</p>
-            <pre class="text-slate-300 font-mono leading-relaxed">timestamp,usuario,ip,
-exito_fallo,accion
-2026-05-25 08:03,
-admin,192.168.1.45,
-fallo,LOGIN</pre>
-          </div>
-          <div class="flex items-center justify-center">
-            <ArrowRight class="w-6 h-6 text-cyan-500" />
-          </div>
-          <div class="bg-slate-900/60 border border-cyan-500/20 rounded-lg p-3">
-            <p class="text-cyan-400 font-medium mb-2">2. Hechos Prolog</p>
-            <pre class="text-cyan-300 font-mono leading-relaxed">:- dynamic log/5.
-
-log('2026-05-25 08:03',
-  admin,
-  '192.168.1.45',
-  fallo,
-  login).</pre>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Filter, ArrowRight } from '@lucide/vue'
+import { Filter } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
 import RoleBadge from '../components/shared/RoleBadge.vue'
 import { useSecurityStore } from '../stores/security'
@@ -159,6 +126,19 @@ const page         = ref(1)
 const perPage      = 10
 
 const flags: Record<string, string> = { AR: '🇦🇷', RU: '🇷🇺', US: '🇺🇸', BR: '🇧🇷', CN: '🇨🇳' }
+
+function formatTs(ts: string): string {
+  const n = Number(ts)
+  if (!n) return ts
+  return new Date(n * 1000).toLocaleString('es-AR', {
+    day:    '2-digit',
+    month:  '2-digit',
+    year:   'numeric',
+    hour:   '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+}
 
 const blocked = computed(() => new Set(store.blockedIPs.map(b => b.ip)))
 function isBlocked(ip: string) { return blocked.value.has(ip) }

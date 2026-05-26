@@ -1,0 +1,8 @@
+timestamp,usuario,ip,accion,resultado
+1779703200,respaldo_bd,192.168.1.20,login,exito
+1779703300,respaldo_bd,192.168.1.20,descarga,exito
+1779703400,monitor_red,192.168.1.21,login,exito
+1779703500,monitor_red,192.168.1.21,descarga,exito
+1779703600,admin_ti,192.168.0.10,login,exito
+1779703700,jgonzalez,192.168.1.45,login,exito
+1779703800,mperez,192.168.1.50,login,exito

@@ -25,6 +25,9 @@ export interface SecurityAlert {
   timestamp:   string
   prologRule:  string
   count?:      number
+  alertType:   string   // nombre del predicado Prolog (ej: ataque_fuerza_bruta)
+  rawEntity:   string   // valor crudo del 3° argumento que devuelve Prolog
+  rawDetail:   string   // valor crudo del 4° argumento que devuelve Prolog
 }
 
 export interface BlockedIP {

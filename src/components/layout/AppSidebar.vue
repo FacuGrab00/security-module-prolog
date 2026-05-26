@@ -34,25 +34,13 @@
       </RouterLink>
     </nav>
 
-    <!-- Footer -->
-    <div class="px-4 py-4 border-t border-slate-800">
-      <div class="flex items-center gap-3 px-2">
-        <div class="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-          <User class="w-4 h-4 text-cyan-400" />
-        </div>
-        <div>
-          <p class="text-white text-xs font-medium">Administrador</p>
-          <p class="text-slate-500 text-xs">UNCAUS · IA 2026</p>
-        </div>
-      </div>
-    </div>
   </aside>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText, User } from '@lucide/vue'
+import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText } from '@lucide/vue'
 import { useSecurityStore } from '../../stores/security'
 
 const route  = useRoute()

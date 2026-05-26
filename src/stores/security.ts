@@ -136,18 +136,35 @@ function buildDescription(a: PrologAlert): string {
   }
 }
 
+// Tipos donde entity = IP (no usuario)
+const ENTITY_IS_IP = new Set(['ataque_masivo_ip', 'acceso_ip_prohibida'])
+
+// Tipos donde detail = IP
+const DETAIL_IS_IP = new Set(['ataque_fuerza_bruta', 'acceso_tras_intentos', 'usuario_desconocido'])
+
+function resolveFields(a: PrologAlert): { user: string; ip: string } {
+  const t = String(a.type)
+  if (ENTITY_IS_IP.has(t))  return { user: '—',              ip: String(a.entity || '—') }
+  if (DETAIL_IS_IP.has(t))  return { user: String(a.entity || '—'), ip: String(a.detail || '—') }
+  return                           { user: String(a.entity || '—'), ip: '—' }
+}
+
 function prologAlertToUI(a: PrologAlert, index: number): SecurityAlert {
   const typeKey = String(a.type)
+  const { user, ip } = resolveFields(a)
   return {
     id:          `ALT-${String(index + 1).padStart(3, '0')}`,
     type:        TYPE_LABEL[typeKey] ?? typeKey,
     description: buildDescription(a),
     severity:    mapSeverity(a.severity),
     status:      'active',
-    ip:          String(a.detail || a.entity || '—'),
-    user:        String(a.entity || '—'),
+    ip,
+    user,
     timestamp:   new Date().toLocaleString('es-AR'),
     prologRule:  RULE_CODE[typeKey] ?? `${typeKey}(${a.entity}, ${a.detail}).`,
+    alertType:   typeKey,
+    rawEntity:   String(a.entity ?? '—'),
+    rawDetail:   String(a.detail ?? '—'),
   }
 }
 
@@ -257,9 +274,14 @@ export const useSecurityStore = defineStore('security', () => {
     if (alert) alert.status = status
   }
 
+  function dismissAlert(id: string) {
+    const idx = alerts.value.findIndex(a => a.id === id)
+    if (idx !== -1) alerts.value.splice(idx, 1)
+  }
+
   return {
     logs, alerts, blockedIPs, stats, activeAlerts, criticalAlerts,
     isLoading, prologOnline, prologStats,
-    fetchAll, importCSV, generateReport, runQuery, blockIP, updateAlertStatus,
+    fetchAll, importCSV, generateReport, runQuery, blockIP, updateAlertStatus, dismissAlert,
   }
 })

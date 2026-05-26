@@ -27,7 +27,7 @@
         <!-- Top row -->
         <div class="flex items-start justify-between gap-2 mb-2">
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-xs font-mono text-slate-500">{{ alert.id }}</span>
+            <span class="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-slate-700 border border-slate-600 text-slate-400">{{ alert.id }}</span>
             <SeverityBadge :severity="alert.severity" />
             <StatusBadge :status="alert.status" />
           </div>
@@ -38,49 +38,25 @@
         <p class="text-sm font-medium text-white mb-1">{{ alert.type }}</p>
         <p class="text-xs text-slate-400 mb-3 leading-relaxed">{{ alert.description }}</p>
 
-        <!-- Meta -->
-        <div class="flex items-center gap-4 text-xs text-slate-500 mb-3">
-          <span class="flex items-center gap-1"><User class="w-3 h-3" />{{ alert.user }}</span>
-          <span class="flex items-center gap-1"><Globe class="w-3 h-3" />{{ alert.ip }}</span>
-          <span v-if="alert.count" class="flex items-center gap-1">
-            <Hash class="w-3 h-3" />{{ alert.count }} evento{{ alert.count > 1 ? 's' : '' }}
-          </span>
-        </div>
-
-        <!-- Regla Prolog -->
-        <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 mb-3">
-          <p class="text-xs text-cyan-400 font-mono leading-relaxed">{{ alert.prologRule }}</p>
-        </div>
-
         <!-- Acciones -->
         <div class="flex items-center gap-2">
           <button
-            v-if="alert.status === 'active'"
             @click="emit('block-ip', alert.ip)"
             class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 text-xs rounded-lg transition-colors"
           >
             <Ban class="w-3 h-3" />Bloquear IP
           </button>
           <button
-            v-if="alert.status === 'active'"
-            @click="emit('notify-user', alert.user)"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-400 text-xs rounded-lg transition-colors"
+            @click="store.dismissAlert(alert.id)"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-lg transition-colors"
           >
-            <Bell class="w-3 h-3" />Notificar
+            <X class="w-3 h-3" />Descartar
           </button>
           <button
-            v-if="alert.status === 'active'"
-            @click="store.updateAlertStatus(alert.id, 'investigating')"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-blue-400 text-xs rounded-lg transition-colors"
+            @click="selected = alert"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-lg transition-colors ml-auto"
           >
-            <Search class="w-3 h-3" />Investigar
-          </button>
-          <button
-            v-if="alert.status !== 'resolved'"
-            @click="store.updateAlertStatus(alert.id, 'resolved')"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 text-xs rounded-lg transition-colors"
-          >
-            <CheckCircle class="w-3 h-3" />Resolver
+            <Info class="w-3 h-3" />Detalles
           </button>
         </div>
       </div>
@@ -91,18 +67,152 @@
       </div>
     </div>
   </div>
+
+  <!-- Dialog de detalles -->
+  <Teleport to="body">
+    <div v-if="selected" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="selected = null" />
+      <div class="relative w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
+              <Info class="w-5 h-5 text-cyan-400" />
+            </div>
+            <div>
+              <h3 class="text-white font-semibold">Detalles de la alerta</h3>
+              <p class="text-slate-400 text-xs font-mono">{{ selected.id }}</p>
+            </div>
+          </div>
+          <button @click="selected = null" class="text-slate-400 hover:text-white transition-colors">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="px-6 py-5 space-y-4">
+
+          <!-- Chips de estado -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <SeverityBadge :severity="selected.severity" />
+            <StatusBadge :status="selected.status" />
+          </div>
+
+          <!-- Campos dinámicos según tipo de alerta -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+              <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Clock class="w-3 h-3" />Detectada</p>
+              <p class="text-sm text-white">{{ selected.timestamp }}</p>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+              <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Tag class="w-3 h-3" />Tipo</p>
+              <p class="text-sm text-white">{{ selected.type }}</p>
+            </div>
+
+            <template v-for="field in alertFields(selected)" :key="field.label">
+              <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+                <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
+                  <component :is="field.icon" class="w-3 h-3" />{{ field.label }}
+                </p>
+                <p class="text-sm text-white" :class="field.mono ? 'font-mono' : ''">{{ field.value }}</p>
+              </div>
+            </template>
+
+            <div v-if="selected.count" class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+              <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Hash class="w-3 h-3" />Eventos</p>
+              <p class="text-sm text-white">{{ selected.count }}</p>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+            <p class="text-xs text-slate-500 mb-1.5">Descripción</p>
+            <p class="text-sm text-slate-300 leading-relaxed">{{ selected.description }}</p>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end px-6 py-4 border-t border-slate-700">
+          <button
+            @click="selected = null"
+            class="px-4 py-2 text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors"
+          >Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { AlertTriangle, User, Globe, Hash, Ban, Bell, Search, CheckCircle } from '@lucide/vue'
+import { ref, computed, type Component } from 'vue'
+import { AlertTriangle, User, Globe, Hash, Ban, X, Info, Clock, CheckCircle, Tag, Shield, Calendar } from '@lucide/vue'
 import { useSecurityStore } from '../../stores/security'
+import type { SecurityAlert } from '../../types'
 import SeverityBadge from '../shared/SeverityBadge.vue'
 import StatusBadge from '../shared/StatusBadge.vue'
 
-const emit  = defineEmits<{ 'block-ip': [ip: string]; 'notify-user': [user: string] }>()
+const emit  = defineEmits<{ 'block-ip': [ip: string] }>()
 const store = useSecurityStore()
-const filter = ref<string>('all')
+const filter   = ref<string>('all')
+const selected = ref<SecurityAlert | null>(null)
+
+type Field = { label: string; value: string; icon: Component; mono?: boolean }
+
+function alertFields(a: SecurityAlert): Field[] {
+  const e = a.rawEntity
+  const d = a.rawDetail
+
+  switch (a.alertType) {
+    case 'ataque_fuerza_bruta':
+      return [
+        { label: 'Usuario',   value: e, icon: User,   mono: true },
+        { label: 'IP origen', value: d, icon: Globe,  mono: true },
+      ]
+    case 'ataque_masivo_ip':
+      return [
+        { label: 'IP origen', value: e, icon: Globe,  mono: true },
+      ]
+    case 'acceso_ip_prohibida':
+      return [
+        { label: 'IP',        value: e, icon: Globe,  mono: true },
+        { label: 'Motivo',    value: d, icon: Shield, mono: false },
+      ]
+    case 'sesion_simultanea':
+      return [
+        { label: 'Usuario',   value: e, icon: User,   mono: true },
+      ]
+    case 'acceso_horario_irregular':
+      return [
+        { label: 'Usuario',         value: e,                                                   icon: User,     mono: true  },
+        { label: 'Hora de acceso',  value: new Date(Number(d) * 1000).toLocaleString('es-AR'),  icon: Calendar, mono: false },
+      ]
+    case 'acceso_tras_intentos':
+      return [
+        { label: 'Usuario',   value: e, icon: User,  mono: true },
+        { label: 'IP origen', value: d, icon: Globe, mono: true },
+      ]
+    case 'login_cuenta_servicio':
+      return [
+        { label: 'Cuenta de servicio', value: e, icon: User, mono: true },
+      ]
+    case 'intento_escalada':
+      return [
+        { label: 'Usuario', value: e, icon: User, mono: true },
+      ]
+    case 'usuario_desconocido':
+      return [
+        { label: 'Usuario', value: e, icon: User,  mono: true },
+        { label: 'IP',      value: d, icon: Globe, mono: true },
+      ]
+    default:
+      return [
+        { label: 'Entidad', value: e, icon: User  },
+        { label: 'Detalle', value: d, icon: Globe },
+      ]
+  }
+}
 
 const filteredAlerts = computed(() => {
   return store.alerts.filter(a => {

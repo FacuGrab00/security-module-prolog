@@ -1,0 +1,7 @@
+timestamp,usuario,ip,accion,resultado
+1779703200,jgonzalez,192.168.1.45,login,exito
+1779703350,jgonzalez,203.0.113.99,login,exito
+1779703400,mperez,198.51.100.30,login,exito
+1779703460,mperez,203.0.113.50,login,exito
+1779703500,admin_ti,192.168.0.10,login,exito
+1779703600,lrodriguez,192.168.2.10,login,exito

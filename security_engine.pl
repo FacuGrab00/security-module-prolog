@@ -30,12 +30,12 @@
 :- dynamic horario_permitido/2.
 
 % --- IPs PROHIBIDAS (lista negra inicial) ------------------------------------
-ip_prohibida('45.33.32.156',   'Scanner automatizado Nmap/Shodan').
-ip_prohibida('23.129.64.200',  'Nodo de salida Tor activo').
-ip_prohibida('185.107.47.215', 'Botnet Mirai - infectado').
-ip_prohibida('91.108.56.179',  'Campaña APT activa - origen RU').
-ip_prohibida('104.244.79.6',   'Proxy anonimizador publico').
-ip_prohibida('0.0.0.0',        'Direccion reservada — invalida').
+ip_prohibida('45.33.32.156',   'Escaneo masivo de puertos detectado').
+ip_prohibida('23.129.64.200',  'IP de origen anonimo no rastreable').
+ip_prohibida('185.107.47.215', 'Equipo comprometido usado para ataques').
+ip_prohibida('91.108.56.179',  'Ataque dirigido de origen desconocido').
+ip_prohibida('104.244.79.6',   'Conexion via proxy anonimo').
+ip_prohibida('0.0.0.0',        'Direccion IP no valida').
 
 % --- IPs DE CONFIANZA (lista blanca) --------------------
 % Las reglas que verifican IPs excluyen explícitamente estas direcciones.
@@ -61,8 +61,8 @@ horario_permitido(8, 20).
 % =============================================================================
 
 % REGLA 1 — Ataque de fuerza bruta
-% Condición: 5 o más intentos fallidos de login desde la misma IP al mismo
-% usuario. La IP no debe pertenecer a la lista de confianza.
+% Condición: 5 o más intentos fallidos de login desde la misma IP al mismo usuario
+% La IP no debe pertenecer a la lista de confianza.
 ataque_fuerza_bruta(Usuario, IP) :-
     \+ ip_confiable(IP),
     setof(T, log_entrada(T, Usuario, IP, login, fallo), Tiempos),
@@ -570,13 +570,13 @@ responder_bloquear_ip(Request) :-
 
 iniciar_servidor(Puerto) :-
     http_server(http_dispatch, [port(Puerto)]),
-    format(user_error, "~n  ╔════════════════════════════════════════╗~n"),
-    format(user_error, "  ║   MOTOR DE AUDITORÍA PROLOG — ACTIVO   ║~n"),
-    format(user_error, "  ║   http://localhost:~w               ║~n", [Puerto]),
-    format(user_error, "  ╚════════════════════════════════════════╝~n~n").
+    format(user_error, "~n  ╔════════════════════════════════════════╗~n", []),
+    format(user_error, "  ║   MOTOR DE AUDITORÍA PROLOG — ACTIVO   ║~n", []),
+    format(user_error, "  ║   http://localhost:~w               ║~n",    [Puerto]),
+    format(user_error, "  ╚════════════════════════════════════════╝~n~n", []).
 
 :- initialization(main, main).
 
 main :-
-    iniciar_servidor(8080),
+    iniciar_servidor(9090),
     thread_get_message(stop).

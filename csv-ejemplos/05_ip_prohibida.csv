@@ -1,0 +1,11 @@
+timestamp,usuario,ip,accion,resultado
+1779703200,scanner_bot,45.33.32.156,login,fallo
+1779703250,admin_ti,45.33.32.156,login,fallo
+1779703300,jgonzalez,45.33.32.156,login,fallo
+1779703400,anonimo,23.129.64.200,login,fallo
+1779703450,mperez,23.129.64.200,login,fallo
+1779703500,jgonzalez,91.108.56.179,login,exito
+1779703600,lrodriguez,185.107.47.215,login,fallo
+1779703650,cgarcia,104.244.79.6,login,exito
+1779703700,admin_ti,192.168.0.10,login,exito
+1779703800,mperez,192.168.1.50,login,exito

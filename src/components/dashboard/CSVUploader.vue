@@ -26,9 +26,9 @@
       <!-- Formato esperado -->
       <div class="bg-slate-900/60 border border-slate-700 rounded-lg p-3">
         <p class="text-xs text-slate-400 mb-2 font-medium">Ejemplo de formato CSV:</p>
-        <pre class="text-xs text-cyan-300 font-mono leading-relaxed">timestamp,usuario,ip,exito_fallo,accion
-2026-05-25 08:03:12,admin,192.168.1.45,fallo,LOGIN
-2026-05-25 09:15:00,jperez,10.0.0.88,exito,DB_ACCESS</pre>
+        <pre class="text-xs text-cyan-300 font-mono leading-relaxed">timestamp,usuario,ip,accion,resultado
+1779696720,admin,192.168.1.45,login,fallo
+1779700500,jperez,10.0.0.88,login,exito</pre>
       </div>
 
       <!-- Botón cargar demo -->
@@ -72,20 +72,33 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 const lastImport = ref('')
 
-const DEMO_CSV = `timestamp,usuario,ip,exito_fallo,accion
-2026-05-25 14:00:01,hacker01,91.108.4.200,fallo,LOGIN
-2026-05-25 14:00:03,hacker01,91.108.4.200,fallo,LOGIN
-2026-05-25 14:00:05,hacker01,91.108.4.200,fallo,LOGIN
-2026-05-25 14:00:07,hacker01,91.108.4.200,fallo,LOGIN
-2026-05-25 14:00:09,hacker01,91.108.4.200,fallo,LOGIN
-2026-05-25 14:01:00,cgomez,10.0.0.55,exito,FILE_VIEW
-2026-05-25 01:30:00,sysadmin,172.16.0.10,exito,DB_ACCESS`
+const DEMO_CSV = `timestamp,usuario,ip,accion,resultado
+1779703200,hacker01,203.0.113.45,login,fallo
+1779703210,hacker01,203.0.113.45,login,fallo
+1779703220,hacker01,203.0.113.45,login,fallo
+1779703230,hacker01,203.0.113.45,login,fallo
+1779703240,hacker01,203.0.113.45,login,fallo
+1779703300,admin_ti,198.51.100.7,login,fallo
+1779703310,jgonzalez,198.51.100.7,login,fallo
+1779703320,mperez,198.51.100.7,login,fallo
+1779703330,lrodriguez,198.51.100.7,login,fallo
+1779703400,scanner,45.33.32.156,login,fallo
+1779703500,jgonzalez,203.0.113.10,login,exito
+1779703620,jgonzalez,198.51.100.20,login,exito
+1779672600,admin_ti,192.168.0.10,login,exito
+1779703700,mperez,198.51.100.30,login,fallo
+1779703710,mperez,198.51.100.30,login,fallo
+1779703720,mperez,198.51.100.30,login,fallo
+1779703730,mperez,198.51.100.30,login,exito
+1779703800,respaldo_bd,192.168.1.20,login,exito
+1779703900,intruso1,203.0.113.77,login,fallo
+1779703910,intruso1,203.0.113.77,login,fallo`
 
 function processContent(content: string, filename: string) {
   const lines = content.trim().split('\n').slice(1).filter(Boolean)
   store.importCSV(content)
   setTimeout(() => {
-    lastImport.value = `${filename} — ${lines.length} registros procesados. Se evaluaron las 10 reglas Prolog.`
+    lastImport.value = `${filename} — ${lines.length} registros procesados. Se evaluaron las 13 reglas Prolog.`
   }, 900)
 }
 

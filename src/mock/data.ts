@@ -12,7 +12,7 @@ export const auditQueries: AuditQuery[] = [
   {
     id: 'Q1',
     title: 'Usuarios activos en más de N subredes distintas',
-    description: 'Lista todos los usuarios que generaron eventos en más de N subredes distintas. Combina findall, sort y actividad_red_dispersa/2.',
+    description: 'Lista todos los usuarios que generaron eventos en más de N subredes distintas.',
     category: 'Análisis de Red',
     prolog: `consulta_usuarios_red_dispersa(MinSubredes, Resultados) :-
     findall(U, log_entrada(_, U, _, _, _), UsuariosBrutos),
@@ -41,7 +41,7 @@ export const auditQueries: AuditQuery[] = [
   {
     id: 'Q3',
     title: 'Informe completo de un usuario (estadísticas + alertas)',
-    description: 'Devuelve total de eventos, fallos, éxitos y lista de alertas activas para un usuario. Usa alertas_de_usuario/2 como recolector.',
+    description: 'Devuelve total de eventos, fallos, éxitos y lista de alertas activas para un usuario.',
     category: 'Auditoría',
     prolog: `informe_usuario(Usuario,
              informe(Usuario, Total, Fallos, Exitos, Alertas)) :-
@@ -56,7 +56,7 @@ export const auditQueries: AuditQuery[] = [
   {
     id: 'Q4',
     title: 'Línea de tiempo cronológica de un usuario',
-    description: 'Reconstruye la secuencia de todos los eventos de un usuario ordenados por timestamp. Usa msort para orden estable.',
+    description: 'Reconstruye la secuencia de todos los eventos de un usuario ordenados por tiempo.',
     category: 'Forense',
     prolog: `historial_usuario(Usuario, Timeline) :-
     findall(T-IP-Accion-Resultado,

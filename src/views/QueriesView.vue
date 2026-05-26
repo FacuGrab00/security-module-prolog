@@ -6,23 +6,6 @@
     />
 
     <div class="px-6 pb-6 space-y-4">
-      <!-- Descripción -->
-      <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-xl px-5 py-4">
-        <div class="flex items-start gap-3">
-          <Search class="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <h3 class="text-cyan-300 font-semibold text-sm mb-1">¿Qué son las Queries de Auditoría?</h3>
-            <p class="text-slate-400 text-xs leading-relaxed">
-              Las consultas de auditoría son preguntas complejas al motor Prolog que combinan
-              <span class="text-cyan-400">variables lógicas</span>,
-              <span class="text-cyan-400">recursividad</span> (findall, aggregate) y
-              <span class="text-cyan-400">negación por falla</span> (\+) para detectar patrones no
-              evidentes en la base de conocimiento. Van más allá de simples búsquedas de hechos.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <!-- Queries -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div
@@ -56,7 +39,7 @@
                 {{ loading[query.id] ? 'Consultando...' : 'Ejecutar' }}
               </button>
             </div>
-            <pre class="text-xs text-cyan-300 font-mono bg-slate-900/60 border border-slate-700 rounded-lg p-3 leading-relaxed overflow-x-auto">{{ query.prolog }}</pre>
+            <PrologCode :code="query.prolog" />
 
             <!-- Resultado real del motor Prolog -->
             <div v-if="results[query.id] != null" class="mt-3">
@@ -123,6 +106,7 @@
 import { ref, reactive } from 'vue'
 import { Search, Play, Terminal, CheckCircle, XCircle } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
+import PrologCode from '../components/shared/PrologCode.vue'
 import { auditQueries as mockAuditQueries } from '../mock/data'
 import { useSecurityStore } from '../stores/security'
 

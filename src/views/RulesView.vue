@@ -55,7 +55,7 @@
                 v-if="rule.triggered > 0"
                 class="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full"
               >
-                🔥 {{ rule.triggered }}×
+                {{ rule.triggered }}×
               </span>
               <span v-else class="text-xs text-slate-600">0 triggers</span>
             </div>
@@ -64,7 +64,7 @@
           <!-- Body -->
           <div class="px-5 py-4">
             <p class="text-xs text-slate-400 mb-3 leading-relaxed">{{ rule.description }}</p>
-            <pre class="text-xs text-cyan-300 font-mono bg-slate-900/60 border border-slate-700/50 rounded-lg p-3 leading-relaxed overflow-x-auto whitespace-pre-wrap">{{ rule.code }}</pre>
+            <PrologCode :code="rule.code" />
           </div>
         </div>
       </div>
@@ -75,6 +75,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import AppHeader from '../components/layout/AppHeader.vue'
+import PrologCode from '../components/shared/PrologCode.vue'
 import { prologRulesDefinitions } from '../mock/data'
 import { useSecurityStore } from '../stores/security'
 import type { PrologRule } from '../types'
