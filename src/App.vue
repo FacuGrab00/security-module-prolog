@@ -9,10 +9,21 @@
         Última actualización: <span class="text-slate-400 font-medium tabular-nums">{{ store.stats.lastUpdate }}</span>
       </span>
     </footer>
+
+    <!-- Toast notifications (vue-sonner) -->
+    <Toaster
+      position="bottom-right"
+      :expand="true"
+      :rich-colors="true"
+      :close-button="true"
+      theme="dark"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { Toaster } from 'vue-sonner'
+import 'vue-sonner/style.css'
 import AppSidebar from './components/layout/AppSidebar.vue'
 import { useSecurityStore } from './stores/security'
 
