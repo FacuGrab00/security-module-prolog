@@ -19,7 +19,7 @@
       >
         <Upload class="w-8 h-8 text-slate-400 mx-auto mb-2" />
         <p class="text-sm text-slate-300">Arrastrá tu CSV aquí o <span class="text-cyan-400 font-medium">hacé click</span></p>
-        <p class="text-xs text-slate-500 mt-1">Formato: timestamp, usuario, ip, exito_fallo, accion</p>
+        <p class="text-xs text-slate-500 mt-1">Formato: timestamp, usuario, ip, accion, resultado</p>
         <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="handleFileChange" />
       </div>
 
@@ -31,15 +31,27 @@
 1779700500,jperez,10.0.0.88,login,exito</pre>
       </div>
 
-      <!-- Botón cargar demo -->
-      <button
-        @click="loadDemo"
-        :disabled="store.isLoading"
-        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-400 text-sm rounded-lg transition-colors disabled:opacity-50"
-      >
-        <FlaskConical class="w-4 h-4" />
-        Cargar CSV de ejemplo (demo)
-      </button>
+      <!-- Botones -->
+      <div class="flex gap-2">
+        <button
+          @click="loadDemo"
+          :disabled="store.isLoading"
+          class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-400 text-sm rounded-lg transition-colors disabled:opacity-50"
+        >
+          <FlaskConical class="w-4 h-4" />
+          Cargar demo
+        </button>
+
+        <button
+          v-if="store.loadedFiles.length > 0"
+          @click="confirmClear"
+          :disabled="store.isLoading"
+          class="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm rounded-lg transition-colors disabled:opacity-50"
+        >
+          <Trash2 class="w-4 h-4" />
+          Limpiar todo
+        </button>
+      </div>
 
       <!-- Estado de carga -->
       <div v-if="store.isLoading" class="flex items-center gap-3 px-3 py-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
@@ -50,12 +62,26 @@
         </div>
       </div>
 
-      <!-- Resultado -->
-      <div v-if="lastImport" class="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2.5">
-        <CheckCircle class="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-        <div>
-          <p class="text-xs text-emerald-300 font-medium">Importación completada</p>
-          <p class="text-xs text-slate-400">{{ lastImport }}</p>
+      <!-- Historial de archivos cargados -->
+      <div v-if="store.loadedFiles.length > 0" class="space-y-1">
+        <p class="text-xs text-slate-400 font-medium mb-2">Archivos en memoria</p>
+        <div
+          v-for="(file, i) in store.loadedFiles"
+          :key="i"
+          class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <FileText class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+            <span class="text-xs text-slate-300 truncate font-mono">{{ file.name }}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 text-xs">
+            <span class="text-emerald-400 font-medium">+{{ file.recordsAdded }}</span>
+            <span
+              v-if="file.recordsSkipped > 0"
+              class="text-amber-400"
+            >{{ file.recordsSkipped }} dup.</span>
+            <span class="text-slate-500">{{ file.loadedAt }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -64,13 +90,218 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Upload, FlaskConical, CheckCircle } from '@lucide/vue'
+import { Upload, FlaskConical, Trash2, FileText } from '@lucide/vue'
+import { toast } from 'vue-sonner'
 import { useSecurityStore } from '../../stores/security'
 
-const store     = useSecurityStore()
-const fileInput = ref<HTMLInputElement | null>(null)
+const store      = useSecurityStore()
+const fileInput  = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
-const lastImport = ref('')
+
+// ─── Columnas requeridas (en orden) ──────────────────────────────────────────
+const REQUIRED_HEADERS = ['timestamp', 'usuario', 'ip', 'accion', 'resultado']
+const VALID_RESULTS     = new Set(['exito', 'fallo'])
+
+// ─── Validación del CSV ───────────────────────────────────────────────────────
+
+interface ValidationResult {
+  ok:     boolean
+  errors: string[]
+  rows:   number
+}
+
+function validateCSV(content: string): ValidationResult {
+  const errors: string[] = []
+  const lines = content.trim().split('\n').filter(Boolean)
+
+  if (lines.length === 0) {
+    return { ok: false, errors: ['El archivo está vacío.'], rows: 0 }
+  }
+
+  // 1. Validar cabecera
+  const rawHeader = lines[0].trim().toLowerCase()
+  const headers   = rawHeader.split(',').map(h => h.trim())
+
+  if (headers.length !== REQUIRED_HEADERS.length) {
+    errors.push(
+      `La cabecera tiene ${headers.length} columna(s) pero se esperan ${REQUIRED_HEADERS.length}. ` +
+      `Esperado: ${REQUIRED_HEADERS.join(', ')}`
+    )
+    return { ok: false, errors, rows: 0 }
+  }
+
+  const wrongCols = REQUIRED_HEADERS
+    .map((h, i) => headers[i] !== h ? `columna ${i + 1}: se esperaba "${h}", se encontró "${headers[i]}"` : null)
+    .filter(Boolean) as string[]
+
+  if (wrongCols.length > 0) {
+    errors.push(`Cabecera incorrecta — ${wrongCols.join('; ')}`)
+    return { ok: false, errors, rows: 0 }
+  }
+
+  // 2. Validar filas de datos
+  const dataLines = lines.slice(1)
+
+  if (dataLines.length === 0) {
+    errors.push('El CSV sólo tiene cabecera, no hay filas de datos.')
+    return { ok: false, errors, rows: 0 }
+  }
+
+  const rowErrors: string[] = []
+
+  dataLines.forEach((line, idx) => {
+    const row    = line.trim()
+    if (!row) return
+    const fields = row.split(',').map(f => f.trim())
+    const lineNum = idx + 2   // +1 cabecera, +1 base-1
+
+    if (fields.length !== 5) {
+      rowErrors.push(`Línea ${lineNum}: se esperan 5 columnas, se encontraron ${fields.length}`)
+      return
+    }
+
+    const [ts, usuario, ip, , resultado] = fields
+
+    if (!/^\d+$/.test(ts)) {
+      rowErrors.push(`Línea ${lineNum}: el timestamp "${ts}" no es un número entero`)
+    }
+
+    if (!usuario) {
+      rowErrors.push(`Línea ${lineNum}: el campo "usuario" está vacío`)
+    }
+
+    if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) {
+      rowErrors.push(`Línea ${lineNum}: la IP "${ip}" no tiene un formato válido`)
+    }
+
+    if (!VALID_RESULTS.has(resultado.toLowerCase())) {
+      rowErrors.push(
+        `Línea ${lineNum}: el resultado "${resultado}" no es válido (debe ser "exito" o "fallo")`
+      )
+    }
+  })
+
+  if (rowErrors.length > 0) {
+    const shown = rowErrors.slice(0, 5)
+    if (rowErrors.length > 5) shown.push(`… y ${rowErrors.length - 5} error(es) más`)
+    errors.push(...shown)
+    return { ok: false, errors, rows: 0 }
+  }
+
+  return { ok: true, errors: [], rows: dataLines.filter(l => l.trim()).length }
+}
+
+// ─── Procesamiento ────────────────────────────────────────────────────────────
+
+async function processContent(content: string, filename: string) {
+  const validation = validateCSV(content)
+
+  if (!validation.ok) {
+    toast.error('CSV inválido — no se importó', {
+      description: validation.errors[0],
+      duration: 8000,
+    })
+    validation.errors.slice(1).forEach(err => {
+      toast.warning(err, { duration: 8000 })
+    })
+    return
+  }
+
+  try {
+    const body = await store.importCSV(content, filename)
+
+    if (body?.ok) {
+      // records_added: servidor nuevo (acumulativo)
+      // records_loaded: servidor viejo (fallback de compatibilidad)
+      // validation.rows: último recurso si el servidor no devuelve nada
+      const added   = body.records_added   ?? body.records_loaded ?? validation.rows
+      const skipped = body.records_skipped ?? 0
+      const total   = body.total_in_db     ?? body.records_loaded ?? added
+
+      if (skipped > 0) {
+        toast.success(`${added} registros nuevos cargados`, {
+          description: `${skipped} duplicado(s) omitido(s) · ${total} registros en memoria`,
+          duration: 6000,
+        })
+      } else {
+        toast.success(`${added} registros cargados desde "${filename}"`, {
+          description: `Total en memoria: ${total} registros`,
+          duration: 5000,
+        })
+      }
+    } else {
+      toast.error('Error en el motor Prolog', {
+        description: body?.error ?? 'El servidor rechazó el archivo.',
+        duration: 8000,
+      })
+    }
+  } catch {
+    toast.error('Sin conexión al motor Prolog', {
+      description: 'Verificá que el servidor Prolog esté corriendo en el puerto configurado.',
+      duration: 8000,
+    })
+  }
+}
+
+// ─── Limpiar todos los datos ──────────────────────────────────────────────────
+
+async function confirmClear() {
+  const ok = window.confirm('¿Eliminar todos los registros cargados en memoria?')
+  if (!ok) return
+
+  try {
+    await store.clearData()
+    toast.success('Datos limpiados', {
+      description: 'Todos los registros fueron eliminados del motor Prolog.',
+      duration: 4000,
+    })
+  } catch {
+    toast.error('No se pudo limpiar', {
+      description: 'Verificá la conexión con el servidor Prolog.',
+      duration: 6000,
+    })
+  }
+}
+
+// ─── Handlers de input ────────────────────────────────────────────────────────
+
+function handleFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  ;(e.target as HTMLInputElement).value = ''
+
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    toast.error('Tipo de archivo no válido', {
+      description: `"${file.name}" no es un archivo CSV.`,
+      duration: 5000,
+    })
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = ev => processContent(ev.target?.result as string, file.name)
+  reader.readAsText(file)
+}
+
+function handleDrop(e: DragEvent) {
+  isDragging.value = false
+  const file = e.dataTransfer?.files[0]
+  if (!file) return
+
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    toast.error('Tipo de archivo no válido', {
+      description: `"${file.name}" no es un archivo CSV.`,
+      duration: 5000,
+    })
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = ev => processContent(ev.target?.result as string, file.name)
+  reader.readAsText(file)
+}
+
+// ─── Demo ─────────────────────────────────────────────────────────────────────
 
 const DEMO_CSV = `timestamp,usuario,ip,accion,resultado
 1779703200,hacker01,203.0.113.45,login,fallo
@@ -93,31 +324,6 @@ const DEMO_CSV = `timestamp,usuario,ip,accion,resultado
 1779703800,respaldo_bd,192.168.1.20,login,exito
 1779703900,intruso1,203.0.113.77,login,fallo
 1779703910,intruso1,203.0.113.77,login,fallo`
-
-function processContent(content: string, filename: string) {
-  const lines = content.trim().split('\n').slice(1).filter(Boolean)
-  store.importCSV(content)
-  setTimeout(() => {
-    lastImport.value = `${filename} — ${lines.length} registros procesados. Se evaluaron las 13 reglas Prolog.`
-  }, 900)
-}
-
-function handleFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = ev => processContent(ev.target?.result as string, file.name)
-  reader.readAsText(file)
-}
-
-function handleDrop(e: DragEvent) {
-  isDragging.value = false
-  const file = e.dataTransfer?.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = ev => processContent(ev.target?.result as string, file.name)
-  reader.readAsText(file)
-}
 
 function loadDemo() {
   processContent(DEMO_CSV, 'demo_logs.csv')

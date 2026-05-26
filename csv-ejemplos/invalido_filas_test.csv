@@ -1,0 +1,6 @@
+timestamp,usuario,ip,accion,resultado
+1779703200,hacker01,203.0.113.45,login,fallo
+1779703210,hacker01,login,fallo
+abc_invalido,jgonzalez,10.0.0.1,login,exito
+1779703400,mperez,999.999.999.999,login,ok
+1779703500,,192.168.1.1,login,fallo

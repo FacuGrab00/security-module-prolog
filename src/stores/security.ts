@@ -168,12 +168,29 @@ function prologAlertToUI(a: PrologAlert, index: number): SecurityAlert {
   }
 }
 
+// ─── Tipos del historial de importaciones ────────────────────────────────────
+
+interface LoadedFile {
+  name:            string
+  loadedAt:        string
+  recordsAdded:    number
+  recordsSkipped:  number
+}
+
+// ─── Tipos de listas de IPs ───────────────────────────────────────────────────
+
+export interface BlacklistEntry { ip: string; motivo: string }
+export interface WhitelistEntry { ip: string }
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useSecurityStore = defineStore('security', () => {
   const logs         = ref<LogEntry[]>([])
   const alerts       = ref<SecurityAlert[]>([])
   const blockedIPs   = ref<BlockedIP[]>([])
+  const loadedFiles  = ref<LoadedFile[]>([])
+  const blacklist    = ref<BlacklistEntry[]>([])
+  const whitelist    = ref<WhitelistEntry[]>([])
   const isLoading    = ref(false)
   const prologOnline = ref(false)
   const prologStats  = ref<PrologStats | null>(null)
@@ -230,7 +247,7 @@ export const useSecurityStore = defineStore('security', () => {
     }))
   }
 
-  async function importCSV(content: string) {
+  async function importCSV(content: string, filename: string) {
     isLoading.value = true
     try {
       const res  = await fetch('/api/load_csv_data', {
@@ -239,8 +256,31 @@ export const useSecurityStore = defineStore('security', () => {
         body:    JSON.stringify({ data: content }),
       })
       const body = await res.json()
-      if (body.ok) await fetchAll()
+      if (body.ok) {
+        await fetchAll()
+        loadedFiles.value.push({
+          name:           filename,
+          loadedAt:       new Date().toLocaleTimeString('es-AR'),
+          // records_added: servidor nuevo | records_loaded: servidor viejo (fallback)
+          recordsAdded:   body.records_added   ?? body.records_loaded ?? 0,
+          recordsSkipped: body.records_skipped ?? 0,
+        })
+      }
       return body
+    } catch (err) {
+      isLoading.value = false
+      throw err            // propagar errores de red al caller
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function clearData() {
+    isLoading.value = true
+    try {
+      await fetch('/api/clear_data', { method: 'POST' })
+      await fetchAll()
+      loadedFiles.value = []
     } finally {
       isLoading.value = false
     }
@@ -279,9 +319,88 @@ export const useSecurityStore = defineStore('security', () => {
     if (idx !== -1) alerts.value.splice(idx, 1)
   }
 
+  // ─── Gestión de listas de IPs ────────────────────────────────────────────────
+
+  // ── helpers para parsear respuestas con chequeo de HTTP status ──────────────
+
+  async function safeJson(res: Response): Promise<Record<string, unknown>> {
+    // Prolog devuelve errores como JSON con {code, message} (HTTP 4xx/5xx).
+    // Normalizamos: si el status no es 2xx, lo convertimos a {ok: false, error}.
+    const text = await res.text()
+    let body: Record<string, unknown>
+    try { body = JSON.parse(text) } catch { body = { raw: text } }
+    if (!res.ok) {
+      const msg = (body.message as string) ?? `HTTP ${res.status}`
+      return { ok: false, error: msg }
+    }
+    return body
+  }
+
+  async function fetchBlacklist() {
+    const res  = await fetch('/api/blacklist')
+    const body = await safeJson(res)
+    if (body.ok !== false) blacklist.value = (body.blacklist as BlacklistEntry[]) ?? []
+  }
+
+  async function fetchWhitelist() {
+    const res  = await fetch('/api/whitelist')
+    const body = await safeJson(res)
+    if (body.ok !== false) {
+      whitelist.value = ((body.whitelist as string[]) ?? []).map(ip => ({ ip }))
+    }
+  }
+
+  async function addToBlacklist(ip: string, motivo: string) {
+    const res  = await fetch('/api/bloquear_ip', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ip, motivo }),
+    })
+    const body = await safeJson(res)
+    if (body.ok) await fetchBlacklist()
+    return body
+  }
+
+  async function removeFromBlacklist(ip: string) {
+    const res  = await fetch('/api/blacklist_remove', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ip }),
+    })
+    const body = await safeJson(res)
+    if (body.ok) await fetchBlacklist()
+    return body
+  }
+
+  async function addToWhitelist(ip: string) {
+    const res  = await fetch('/api/whitelist_add', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ip }),
+    })
+    const body = await safeJson(res)
+    if (body.ok) await fetchWhitelist()
+    return body
+  }
+
+  async function removeFromWhitelist(ip: string) {
+    const res  = await fetch('/api/whitelist_remove', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ip }),
+    })
+    const body = await safeJson(res)
+    if (body.ok) await fetchWhitelist()
+    return body
+  }
+
   return {
-    logs, alerts, blockedIPs, stats, activeAlerts, criticalAlerts,
+    logs, alerts, blockedIPs, loadedFiles, blacklist, whitelist, stats, activeAlerts, criticalAlerts,
     isLoading, prologOnline, prologStats,
-    fetchAll, importCSV, generateReport, runQuery, blockIP, updateAlertStatus, dismissAlert,
+    fetchAll, importCSV, clearData, generateReport, runQuery,
+    blockIP, updateAlertStatus, dismissAlert,
+    fetchBlacklist, fetchWhitelist,
+    addToBlacklist, removeFromBlacklist,
+    addToWhitelist, removeFromWhitelist,
   }
 })
