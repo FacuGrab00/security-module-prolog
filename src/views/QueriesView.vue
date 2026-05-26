@@ -29,6 +29,34 @@
           <div class="px-5 py-4">
             <div class="flex items-center justify-between mb-2">
               <p class="text-xs text-slate-500 font-medium uppercase tracking-wide">Código Prolog</p>
+            </div>
+            <PrologCode :code="query.prolog" />
+
+            <!-- Input de usuario para Q3 y Q4 -->
+            <div v-if="QUERY_TYPE_MAP[query.id]?.needsUser" class="mt-3 flex gap-2">
+              <div class="flex-1 flex items-center bg-slate-900 border border-slate-600 rounded-lg px-3 focus-within:border-cyan-500 transition-colors">
+                <span class="text-slate-500 text-xs mr-2 font-mono">Usuario:</span>
+                <input
+                  v-model="userInputs[query.id]"
+                  type="text"
+                  placeholder="ej: admin_ti"
+                  class="flex-1 bg-transparent text-white text-xs py-2 focus:outline-none font-mono placeholder-slate-600"
+                  @keydown.enter="runQuery(query.id)"
+                />
+              </div>
+              <button
+                @click="runQuery(query.id)"
+                :disabled="loading[query.id] || !userInputs[query.id]?.trim()"
+                class="flex items-center gap-1.5 text-xs px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-400 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <div v-if="loading[query.id]" class="w-3 h-3 border border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                <Play v-else class="w-3 h-3" />
+                {{ loading[query.id] ? 'Consultando...' : 'Ejecutar' }}
+              </button>
+            </div>
+
+            <!-- Botón ejecutar para Q1 y Q2 (no necesitan usuario) -->
+            <div v-else class="mt-3 flex justify-end">
               <button
                 @click="runQuery(query.id)"
                 :disabled="loading[query.id]"
@@ -39,7 +67,6 @@
                 {{ loading[query.id] ? 'Consultando...' : 'Ejecutar' }}
               </button>
             </div>
-            <PrologCode :code="query.prolog" />
 
             <!-- Resultado real del motor Prolog -->
             <div v-if="results[query.id] != null" class="mt-3">
@@ -104,7 +131,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { Search, Play, Terminal, CheckCircle, XCircle } from '@lucide/vue'
+import { Play, Terminal, CheckCircle, XCircle } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
 import PrologCode from '../components/shared/PrologCode.vue'
 import { auditQueries as mockAuditQueries } from '../mock/data'
@@ -117,20 +144,37 @@ const freeQuery  = ref('')
 const freeResult = ref<{ ok: boolean; text: string } | null>(null)
 const freeLoading = ref(false)
 
-// Mapeo de ID de query estática → tipo de endpoint Prolog real
-const QUERY_TYPE_MAP: Record<string, { type: string; params?: Record<string, string> }> = {
+// Input de usuario por query (para Q3 y Q4 que requieren un usuario concreto)
+const userInputs = reactive<Record<string, string>>({
+  Q3: '',
+  Q4: '',
+})
+
+// Mapeo de ID de query → configuración del endpoint
+// needsUser: true → muestra input de usuario antes de ejecutar
+const QUERY_TYPE_MAP: Record<string, { type: string; needsUser?: boolean; params?: Record<string, string> }> = {
   Q1: { type: 'multiples_subredes', params: { min: '3' } },
   Q2: { type: 'ips_comprometidas' },
-  Q3: { type: 'resumen', params: { user: 'admin' } },
-  Q4: { type: 'ips_comprometidas' },
+  Q3: { type: 'resumen',            needsUser: true },
+  Q4: { type: 'historial_usuario',  needsUser: true },
 }
 
 async function runQuery(id: string) {
   const mapping = QUERY_TYPE_MAP[id]
   if (!mapping) return
+
+  const params: Record<string, string> = { ...(mapping.params ?? {}) }
+
+  // Para queries que necesitan usuario, tomarlo del input
+  if (mapping.needsUser) {
+    const user = userInputs[id]?.trim()
+    if (!user) return
+    params.user = user
+  }
+
   loading[id] = true
   try {
-    const raw = await store.runQuery(mapping.type, mapping.params ?? {})
+    const raw = await store.runQuery(mapping.type, params)
     results[id] = raw || 'false.'
   } catch {
     results[id] = 'Error: motor Prolog no disponible'
@@ -142,7 +186,6 @@ async function runQuery(id: string) {
 async function runFreeQuery() {
   if (!freeQuery.value.trim()) return
   freeLoading.value = true
-  // Detecta patrón "tipo(args)" o mapea keywords a endpoints conocidos
   const q = freeQuery.value.trim().toLowerCase()
   try {
     let result: string
@@ -152,9 +195,12 @@ async function runFreeQuery() {
       result = await store.runQuery('ips_comprometidas')
     } else if (q.includes('resumen')) {
       const match = q.match(/resumen[_(](\w+)/)
-      result = await store.runQuery('resumen', { user: match?.[1] ?? 'admin' })
+      result = await store.runQuery('resumen', { user: match?.[1] ?? 'admin_ti' })
+    } else if (q.includes('historial') || q.includes('timeline')) {
+      const match = q.match(/historial[_(](\w+)/)
+      result = await store.runQuery('historial_usuario', { user: match?.[1] ?? 'admin_ti' })
     } else {
-      result = 'Consulta no reconocida. Tipos disponibles: multiples_subredes, ips_comprometidas, resumen'
+      result = 'Consulta no reconocida. Tipos disponibles: multiples_subredes, ips_comprometidas, resumen(<usuario>), historial(<usuario>)'
     }
     freeResult.value = { ok: !result.startsWith('Error') && result !== 'false.', text: result || 'false.' }
   } catch {
