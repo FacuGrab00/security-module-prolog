@@ -41,10 +41,10 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText, ShieldHalf } from '@lucide/vue'
-import { useSecurityStore } from '../../stores/security'
+import { useAlertsStore } from '../../stores/alerts'
 
 const route  = useRoute()
-const store  = useSecurityStore()
+const store  = useAlertsStore()
 const active = computed(() => store.activeAlerts.length)
 
 const navItems = computed(() => [

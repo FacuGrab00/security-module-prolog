@@ -77,10 +77,10 @@ import { ref, computed } from 'vue'
 import AppHeader from '../components/layout/AppHeader.vue'
 import PrologCode from '../components/shared/PrologCode.vue'
 import { prologRulesDefinitions } from '../mock/data'
-import { useSecurityStore } from '../stores/security'
+import { useAlertsStore } from '../stores/alerts'
 import type { PrologRule } from '../types'
 
-const store     = useSecurityStore()
+const store     = useAlertsStore()
 const filterCat = ref<string | null>(null)
 
 // Mapeo: tipo de alerta Prolog (campo "type" del JSON) → id de regla estática

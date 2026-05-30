@@ -116,9 +116,11 @@ import { ref, computed } from 'vue'
 import { Filter } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
 import RoleBadge from '../components/shared/RoleBadge.vue'
-import { useSecurityStore } from '../stores/security'
+import { useLogsStore }    from '../stores/logs'
+import { useIpListsStore } from '../stores/ipLists'
 
-const store        = useSecurityStore()
+const logsStore    = useLogsStore()
+const ipListsStore = useIpListsStore()
 const search       = ref('')
 const resultFilter = ref('all')
 const roleFilter   = ref('all')
@@ -140,11 +142,11 @@ function formatTs(ts: string): string {
   })
 }
 
-const blocked = computed(() => new Set(store.blockedIPs.map(b => b.ip)))
+const blocked = computed(() => new Set(ipListsStore.blockedIPs.map(b => b.ip)))
 function isBlocked(ip: string) { return blocked.value.has(ip) }
 
 const filtered = computed(() => {
-  let logs = store.logs
+  let logs = logsStore.logs
   if (search.value)              logs = logs.filter(l => [l.user, l.ip, l.action].some(s => s.toLowerCase().includes(search.value.toLowerCase())))
   if (resultFilter.value !== 'all') logs = logs.filter(l => l.result === resultFilter.value)
   if (roleFilter.value !== 'all')   logs = logs.filter(l => l.role === roleFilter.value)

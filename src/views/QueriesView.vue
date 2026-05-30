@@ -135,9 +135,9 @@ import { Play, Terminal, CheckCircle, XCircle } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
 import PrologCode from '../components/shared/PrologCode.vue'
 import { auditQueries as mockAuditQueries } from '../mock/data'
-import { useSecurityStore } from '../stores/security'
+import { useAppStore } from '../stores/app'
 
-const store     = useSecurityStore()
+const store     = useAppStore()
 const results   = reactive<Record<string, string | null>>({})
 const loading   = reactive<Record<string, boolean>>({})
 const freeQuery  = ref('')

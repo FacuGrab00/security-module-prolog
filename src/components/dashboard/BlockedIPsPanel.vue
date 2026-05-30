@@ -32,6 +32,6 @@
 
 <script setup lang="ts">
 import { ShieldOff } from '@lucide/vue'
-import { useSecurityStore } from '../../stores/security'
-const store = useSecurityStore()
+import { useIpListsStore } from '../../stores/ipLists'
+const store = useIpListsStore()
 </script>

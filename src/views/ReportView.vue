@@ -57,9 +57,9 @@ import { ref, computed, onMounted } from 'vue'
 import { jsPDF } from 'jspdf'
 import { FileText, Download, RefreshCw, FileDown } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
-import { useSecurityStore } from '../stores/security'
+import { useAppStore } from '../stores/app'
 
-const store          = useSecurityStore()
+const store          = useAppStore()
 const reportContent  = ref('Cargando reporte desde el motor Prolog...')
 const isGenerating   = ref(false)
 const isExportingPDF = ref(false)

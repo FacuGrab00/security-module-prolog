@@ -25,7 +25,7 @@
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
 import AppSidebar from './components/layout/AppSidebar.vue'
-import { useSecurityStore } from './stores/security'
+import { useAppStore } from './stores/app'
 
-const store = useSecurityStore()
+const store = useAppStore()
 </script>

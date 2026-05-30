@@ -94,11 +94,11 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { Ban, X, AlertTriangle } from '@lucide/vue'
-import { useSecurityStore } from '../../stores/security'
+import { useIpListsStore } from '../../stores/ipLists'
 
 const props  = defineProps<{ ip?: string }>()
 const emit   = defineEmits<{ close: []; confirmed: [ip: string] }>()
-const store  = useSecurityStore()
+const store  = useIpListsStore()
 
 const form = reactive({ ip: props.ip ?? '', reason: '', duration: 'permanent' })
 

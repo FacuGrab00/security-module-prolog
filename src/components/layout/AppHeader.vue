@@ -8,28 +8,28 @@
       <!-- Estado del motor Prolog (real) -->
       <div
         class="flex items-center gap-2 px-3 py-1.5 rounded-lg border"
-        :class="store.prologOnline
+        :class="appStore.prologOnline
           ? 'bg-slate-800 border-slate-700'
           : 'bg-red-500/10 border-red-500/30'"
       >
         <span
           class="w-2 h-2 rounded-full"
-          :class="store.prologOnline ? 'bg-emerald-400 animate-pulse-slow' : 'bg-red-400'"
+          :class="appStore.prologOnline ? 'bg-emerald-400 animate-pulse-slow' : 'bg-red-400'"
         />
         <span class="text-xs text-slate-300">Motor Prolog</span>
         <span
           class="text-xs font-medium"
-          :class="store.prologOnline ? 'text-emerald-400' : 'text-red-400'"
-        >{{ store.prologOnline ? 'Activo' : 'Desconectado' }}</span>
+          :class="appStore.prologOnline ? 'text-emerald-400' : 'text-red-400'"
+        >{{ appStore.prologOnline ? 'Activo' : 'Desconectado' }}</span>
       </div>
 
       <!-- Botón alerta crítica pulsante -->
       <button
-        v-if="store.criticalAlerts.length > 0"
+        v-if="alertsStore.criticalAlerts.length > 0"
         class="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 text-xs font-medium hover:bg-red-500/30 transition-colors animate-pulse-slow"
       >
         <AlertTriangle class="w-3.5 h-3.5" />
-        {{ store.criticalAlerts.length }} Crítica{{ store.criticalAlerts.length > 1 ? 's' : '' }}
+        {{ alertsStore.criticalAlerts.length }} Crítica{{ alertsStore.criticalAlerts.length > 1 ? 's' : '' }}
       </button>
     </div>
   </header>
@@ -37,8 +37,10 @@
 
 <script setup lang="ts">
 import { AlertTriangle } from '@lucide/vue'
-import { useSecurityStore } from '../../stores/security'
+import { useAppStore }    from '../../stores/app'
+import { useAlertsStore } from '../../stores/alerts'
 
 defineProps<{ title: string; subtitle?: string }>()
-const store = useSecurityStore()
+const appStore    = useAppStore()
+const alertsStore = useAlertsStore()
 </script>

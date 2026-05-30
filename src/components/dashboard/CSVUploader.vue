@@ -92,9 +92,9 @@
 import { ref } from 'vue'
 import { Upload, FlaskConical, Trash2, FileText } from '@lucide/vue'
 import { toast } from 'vue-sonner'
-import { useSecurityStore } from '../../stores/security'
+import { useAppStore } from '../../stores/app'
 
-const store      = useSecurityStore()
+const store      = useAppStore()
 const fileInput  = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 

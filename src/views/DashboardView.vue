@@ -42,9 +42,9 @@ import AlertsPanel     from '../components/dashboard/AlertsPanel.vue'
 import BlockedIPsPanel from '../components/dashboard/BlockedIPsPanel.vue'
 import CSVUploader     from '../components/dashboard/CSVUploader.vue'
 import BlockIPModal    from '../components/actions/BlockIPModal.vue'
-import { useSecurityStore } from '../stores/security'
+import { useAppStore } from '../stores/app'
 
-const store      = useSecurityStore()
+const store      = useAppStore()
 const blockModal = reactive({ open: false, ip: '' })
 
 // Carga datos reales del motor Prolog al iniciar

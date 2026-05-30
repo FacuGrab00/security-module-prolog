@@ -214,9 +214,9 @@ import { ref, onMounted } from 'vue'
 import { ShieldCheck, ShieldX, ShieldOff, RefreshCw, Plus, Trash2, AlertTriangle } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import AppHeader from '../components/layout/AppHeader.vue'
-import { useSecurityStore } from '../stores/security'
+import { useIpListsStore } from '../stores/ipLists'
 
-const store = useSecurityStore()
+const store = useIpListsStore()
 
 const loadingLists = ref(false)
 const wlInput      = ref('')

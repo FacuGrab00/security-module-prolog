@@ -23,9 +23,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ScrollText, AlertTriangle, ShieldOff, Activity, CheckCircle } from '@lucide/vue'
-import { useSecurityStore } from '../../stores/security'
+import { useAppStore } from '../../stores/app'
 
-const store = useSecurityStore()
+const store = useAppStore()
 
 const cards = computed(() => [
   {
