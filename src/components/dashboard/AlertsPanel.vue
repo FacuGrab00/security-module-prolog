@@ -35,13 +35,14 @@
         </div>
 
         <!-- Tipo y descripción -->
-        <p class="text-sm font-medium text-white mb-1">{{ alert.type }}</p>
+        <p class="text-sm font-medium text-white mb-1">{{ alert.label }}</p>
         <p class="text-xs text-slate-400 mb-3 leading-relaxed">{{ alert.description }}</p>
 
         <!-- Acciones -->
         <div class="flex items-center gap-2">
           <button
-            @click="emit('block-ip', alert.ip)"
+            v-if="alertIP(alert)"
+            @click="emit('block-ip', alertIP(alert)!)"
             class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 text-xs rounded-lg transition-colors"
           >
             <Ban class="w-3 h-3" />Bloquear IP
@@ -107,7 +108,7 @@
             </div>
             <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
               <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Tag class="w-3 h-3" />Tipo</p>
-              <p class="text-sm text-white">{{ selected.type }}</p>
+              <p class="text-sm text-white">{{ selected.label }}</p>
             </div>
 
             <template v-for="field in alertFields(selected)" :key="field.label">
@@ -148,77 +149,70 @@
 <script setup lang="ts">
 import { ref, computed, type Component } from 'vue'
 import { AlertTriangle, User, Globe, Hash, Ban, X, Info, Clock, CheckCircle, Tag, Shield, Calendar } from '@lucide/vue'
-import { useSecurityStore } from '../../stores/security'
+import { useAlertsStore } from '../../stores/alerts'
 import type { SecurityAlert } from '../../types'
+import { alertIP } from '../../utils/prologMapper'
 import SeverityBadge from '../shared/SeverityBadge.vue'
 import StatusBadge from '../shared/StatusBadge.vue'
 
 const emit  = defineEmits<{ 'block-ip': [ip: string] }>()
-const store = useSecurityStore()
+const store = useAlertsStore()
 const filter   = ref<string>('all')
 const selected = ref<SecurityAlert | null>(null)
 
 type Field = { label: string; value: string; icon: Component; mono?: boolean }
 
 function alertFields(a: SecurityAlert): Field[] {
-  const e = a.rawEntity
-  const d = a.rawDetail
-
-  switch (a.alertType) {
+  switch (a.type) {
     case 'ataque_fuerza_bruta':
       return [
-        { label: 'Usuario',   value: e, icon: User,   mono: true },
-        { label: 'IP origen', value: d, icon: Globe,  mono: true },
+        { label: 'Usuario',   value: a.payload.user, icon: User,   mono: true },
+        { label: 'IP origen', value: a.payload.ip,   icon: Globe,  mono: true },
       ]
     case 'ataque_masivo_ip':
       return [
-        { label: 'IP origen', value: e, icon: Globe,  mono: true },
+        { label: 'IP origen', value: a.payload.ip, icon: Globe, mono: true },
       ]
     case 'acceso_ip_prohibida':
       return [
-        { label: 'IP',        value: e, icon: Globe,  mono: true },
-        { label: 'Motivo',    value: d, icon: Shield, mono: false },
+        { label: 'IP',     value: a.payload.ip,     icon: Globe,  mono: true  },
+        { label: 'Motivo', value: a.payload.motivo,  icon: Shield, mono: false },
       ]
     case 'sesion_simultanea':
       return [
-        { label: 'Usuario',   value: e, icon: User,   mono: true },
+        { label: 'Usuario', value: a.payload.user, icon: User, mono: true },
       ]
     case 'acceso_horario_irregular':
       return [
-        { label: 'Usuario',         value: e,                                                   icon: User,     mono: true  },
-        { label: 'Hora de acceso',  value: new Date(Number(d) * 1000).toLocaleString('es-AR'),  icon: Calendar, mono: false },
+        { label: 'Usuario',        value: a.payload.user, icon: User,     mono: true  },
+        { label: 'Hora de acceso', value: new Date(a.payload.access_time * 1000).toLocaleString('es-AR'), icon: Calendar, mono: false },
       ]
     case 'acceso_tras_intentos':
       return [
-        { label: 'Usuario',   value: e, icon: User,  mono: true },
-        { label: 'IP origen', value: d, icon: Globe, mono: true },
+        { label: 'Usuario',   value: a.payload.user, icon: User,  mono: true },
+        { label: 'IP origen', value: a.payload.ip,   icon: Globe, mono: true },
       ]
     case 'login_cuenta_servicio':
       return [
-        { label: 'Cuenta de servicio', value: e, icon: User, mono: true },
+        { label: 'Cuenta de servicio', value: a.payload.user, icon: User, mono: true },
       ]
     case 'intento_escalada':
       return [
-        { label: 'Usuario', value: e, icon: User, mono: true },
+        { label: 'Usuario', value: a.payload.user, icon: User, mono: true },
       ]
     case 'usuario_desconocido':
       return [
-        { label: 'Usuario', value: e, icon: User,  mono: true },
-        { label: 'IP',      value: d, icon: Globe, mono: true },
-      ]
-    default:
-      return [
-        { label: 'Entidad', value: e, icon: User  },
-        { label: 'Detalle', value: d, icon: Globe },
+        { label: 'Usuario', value: a.payload.user, icon: User,  mono: true },
+        { label: 'IP',      value: a.payload.ip,   icon: Globe, mono: true },
       ]
   }
 }
 
 const filteredAlerts = computed(() => {
   return store.alerts.filter(a => {
-    if (filter.value === 'all')      return true
-    if (filter.value === 'critical') return a.severity === 'critical'
-    if (filter.value === 'high')     return a.severity === 'high'
+    if (filter.value === 'all')      return a.status !== 'resolved'
+    if (filter.value === 'critical') return a.severity === 'critical' && a.status !== 'resolved'
+    if (filter.value === 'high')     return a.severity === 'high'     && a.status !== 'resolved'
     if (filter.value === 'active')   return a.status === 'active'
     return true
   })

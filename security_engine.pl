@@ -21,7 +21,7 @@
 % ip_prohibida(IP, Motivo)
 :- dynamic ip_prohibida/2.
 
-% IPs de confianza (lista blanca) — dynamic para permitir altas/bajas en runtime
+% IPs de confianza (lista blanca)
 % ip_confiable(IP)
 :- dynamic ip_confiable/1.
 
