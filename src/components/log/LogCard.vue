@@ -20,20 +20,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import RoleBadge from '../shared/RoleBadge.vue';
-import type { LogEntry } from '../../types';
+import {computed} from 'vue';
+import RoleBadge from './RoleBadge.vue';
+import type {LogEntry} from '../../types';
 
 const props = defineProps<{ log: LogEntry; blocked: boolean }>();
 
-const rowClass       = computed(() => props.log.result === 'failure' ? 'bg-red-500/5' : '');
+const rowClass = computed(() => props.log.result === 'failure' ? 'bg-red-500/5' : '');
 const resultBadgeClass = computed(() => props.log.result === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400');
-const resultLabel    = computed(() => props.log.result === 'success' ? 'Éxito' : 'Fallo');
-const ipClass        = computed(() => props.blocked ? 'text-red-400' : 'text-slate-300');
+const resultLabel = computed(() => props.log.result === 'success' ? 'Éxito' : 'Fallo');
+const ipClass = computed(() => props.blocked ? 'text-red-400' : 'text-slate-300');
 
 function formatTs(ts: string): string {
   const n = Number(ts);
   if (!n) return ts;
-  return new Date(n * 1000).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(n * 1000).toLocaleString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 </script>

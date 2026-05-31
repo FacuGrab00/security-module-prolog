@@ -36,84 +36,32 @@
       <CSVFileHistory v-if="store.loadedFiles.length > 0" :files="store.loadedFiles"/>
     </div>
   </div>
+
+  <ConfirmDialog
+      v-model="showConfirm"
+      title="Limpiar registros"
+      message="Se eliminarán todos los registros cargados en memoria del motor Prolog. Esta acción no se puede deshacer."
+      confirm-label="Limpiar todo"
+      @confirm="doClear"
+  />
 </template>
 
 <script setup lang="ts">
+import {ref} from 'vue';
 import {Upload, FlaskConical, Trash2} from '@lucide/vue';
 import {toast} from 'vue-sonner';
 import {useAppStore} from '../../stores/app';
 import {DEMO_CSV} from '../../data/demoCSV';
+import {useCSVValidation} from '../../composables/useCSVValidation';
+import ConfirmDialog from '../shared/ConfirmDialog.vue';
 import AppButton from '../shared/AppButton.vue';
 import CSVDropZone from './CSVDropZone.vue';
 import CSVFormatExample from './CSVFormatExample.vue';
 import CSVFileHistory from './CSVFileHistory.vue';
 
 const store = useAppStore();
-
-const REQUIRED_HEADERS = ['timestamp', 'usuario', 'ip', 'accion', 'resultado'];
-const VALID_RESULTS = new Set(['exito', 'fallo']);
-
-interface ValidationResult {
-  ok: boolean;
-  errors: string[];
-  rows: number;
-}
-
-function validateCSV(content: string): ValidationResult {
-  const errors: string[] = [];
-  const lines = content.trim().split('\n').filter(Boolean);
-
-  if (lines.length === 0) return {ok: false, errors: ['El archivo está vacío.'], rows: 0};
-
-  const headers = lines[0].trim().toLowerCase().split(',').map(h => h.trim());
-
-  if (headers.length !== REQUIRED_HEADERS.length) {
-    errors.push(`La cabecera tiene ${headers.length} columna(s) pero se esperan ${REQUIRED_HEADERS.length}. Esperado: ${REQUIRED_HEADERS.join(', ')}`);
-    return {ok: false, errors, rows: 0};
-  }
-
-  const wrongCols = REQUIRED_HEADERS
-      .map((h, i) => headers[i] !== h ? `columna ${i + 1}: se esperaba "${h}", se encontró "${headers[i]}"` : null)
-      .filter(Boolean) as string[];
-
-  if (wrongCols.length > 0) {
-    errors.push(`Cabecera incorrecta — ${wrongCols.join('; ')}`);
-    return {ok: false, errors, rows: 0};
-  }
-
-  const dataLines = lines.slice(1);
-  if (dataLines.length === 0) {
-    errors.push('El CSV sólo tiene cabecera, no hay filas de datos.');
-    return {ok: false, errors, rows: 0};
-  }
-
-  const rowErrors: string[] = [];
-  dataLines.forEach((line, idx) => {
-    const row = line.trim();
-    if (!row) return;
-    const fields = row.split(',').map(f => f.trim());
-    const lineNum = idx + 2;
-
-    if (fields.length !== 5) {
-      rowErrors.push(`Línea ${lineNum}: se esperan 5 columnas, se encontraron ${fields.length}`);
-      return;
-    }
-
-    const [ts, usuario, ip, , resultado] = fields;
-    if (!/^\d+$/.test(ts)) rowErrors.push(`Línea ${lineNum}: el timestamp "${ts}" no es un número entero`);
-    if (!usuario) rowErrors.push(`Línea ${lineNum}: el campo "usuario" está vacío`);
-    if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) rowErrors.push(`Línea ${lineNum}: la IP "${ip}" no tiene un formato válido`);
-    if (!VALID_RESULTS.has(resultado.toLowerCase())) rowErrors.push(`Línea ${lineNum}: el resultado "${resultado}" no es válido (debe ser "exito" o "fallo")`);
-  });
-
-  if (rowErrors.length > 0) {
-    const shown = rowErrors.slice(0, 5);
-    if (rowErrors.length > 5) shown.push(`… y ${rowErrors.length - 5} error(es) más`);
-    return {ok: false, errors: shown, rows: 0};
-  }
-
-  return {ok: true, errors: [], rows: dataLines.filter(l => l.trim()).length};
-}
+const {validateCSV} = useCSVValidation();
+const showConfirm = ref(false);
 
 async function processContent(content: string, filename: string) {
   const validation = validateCSV(content);
@@ -127,9 +75,9 @@ async function processContent(content: string, filename: string) {
   try {
     const body = await store.importCSV(content, filename);
     if (body?.ok) {
-      const added = body.records_added ?? body.records_loaded ?? validation.rows;
-      const skipped = body.records_skipped ?? 0;
-      const total = body.total_in_db ?? body.records_loaded ?? added;
+      const added = Number(body.records_added ?? body.records_loaded ?? validation.rows);
+      const skipped = Number(body.records_skipped ?? 0);
+      const total = Number(body.total_in_db ?? body.records_loaded ?? added);
 
       if (skipped > 0) {
         toast.success(`${added} registros nuevos cargados`, {
@@ -156,13 +104,16 @@ async function processContent(content: string, filename: string) {
   }
 }
 
-async function confirmClear() {
-  if (!window.confirm('¿Eliminar todos los registros cargados en memoria?')) return;
+function confirmClear() {
+  showConfirm.value = true;
+}
+
+async function doClear() {
   try {
     await store.clearData();
     toast.success('Datos limpiados', {
       description: 'Todos los registros fueron eliminados del motor Prolog.',
-      duration: 4000
+      duration: 4000,
     });
   } catch {
     toast.error('No se pudo limpiar', {description: 'Verificá la conexión con el servidor Prolog.', duration: 6000});

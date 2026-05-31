@@ -3,8 +3,7 @@
     <Transition name="dialog">
       <div v-if="alert" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="emit('close')"/>
-        <div
-            class="dialog-panel relative w-full sm:max-w-lg bg-slate-800 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[90vh]">
+        <div class="dialog-panel">
 
           <!-- Drag handle (mobile) -->
           <div class="sm:hidden flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -12,25 +11,23 @@
           </div>
 
           <!-- Header -->
-          <div
-              class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-700 flex-shrink-0">
+          <div class="dialog-header">
             <div class="flex items-center gap-3">
-              <div
-                  class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+              <div class="dialog-icon">
                 <Info class="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400"/>
               </div>
               <div class="min-w-0">
-                <h3 class="text-white font-semibold text-sm sm:text-base">Detalles de la alerta</h3>
+                <h3 class="app-section-title sm:text-base">Detalles de la alerta</h3>
                 <p class="text-slate-400 text-xs font-mono">{{ alert.id }}</p>
               </div>
             </div>
-            <button @click="emit('close')" class="text-slate-400 hover:text-white transition-colors flex-shrink-0 p-1">
-              <X class="w-5 h-5"/>
-            </button>
+            <AppButton variant="ghost" class="flex-shrink-0" @click="emit('close')">
+              <template #icon><X class="w-5 h-5"/></template>
+            </AppButton>
           </div>
 
           <!-- Body -->
-          <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
+          <div class="dialog-body">
 
             <div class="flex items-center gap-2 flex-wrap">
               <SeverityBadge :severity="alert.severity"/>
@@ -39,36 +36,26 @@
 
             <div class="grid grid-cols-2 gap-2 sm:gap-3">
               <div class="field-box">
-                <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
-                  <Clock class="w-3 h-3"/>
-                  Detectada
-                </p>
+                <p class="field-label"><Clock class="w-3 h-3"/>Detectada</p>
                 <p class="text-xs sm:text-sm text-white">{{ alert.timestamp }}</p>
               </div>
               <div class="field-box">
-                <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
-                  <Tag class="w-3 h-3"/>
-                  Tipo
-                </p>
+                <p class="field-label"><Tag class="w-3 h-3"/>Tipo</p>
                 <p class="text-xs sm:text-sm text-white break-words">{{ alert.label }}</p>
               </div>
 
               <template v-for="field in alertFields(alert)" :key="field.label">
                 <div class="field-box">
-                  <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
-                    <component :is="field.icon" class="w-3 h-3"/>
-                    {{ field.label }}
+                  <p class="field-label">
+                    <component :is="field.icon" class="w-3 h-3"/>{{ field.label }}
                   </p>
-                  <p class="text-xs sm:text-sm text-white break-all" :class="field.mono ? 'font-mono' : ''">
+                  <p class="text-xs sm:text-sm text-white break-all" :class="fieldTextClass(field.mono)">
                     {{ field.value }}</p>
                 </div>
               </template>
 
               <div v-if="alert.count" class="field-box">
-                <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
-                  <Hash class="w-3 h-3"/>
-                  Eventos
-                </p>
+                <p class="field-label"><Hash class="w-3 h-3"/>Eventos</p>
                 <p class="text-xs sm:text-sm text-white">{{ alert.count }}</p>
               </div>
             </div>
@@ -81,7 +68,7 @@
           </div>
 
           <!-- Footer -->
-          <div class="flex justify-end px-4 sm:px-6 py-3 border-t border-slate-700 flex-shrink-0">
+          <div class="dialog-footer">
             <AppButton @click="emit('close')">Cerrar</AppButton>
           </div>
 
@@ -95,14 +82,18 @@
 import {type Component} from 'vue';
 import {Info, X, Clock, Tag, Hash, User, Globe, Shield, Calendar} from '@lucide/vue';
 import AppButton from '../shared/AppButton.vue';
-import SeverityBadge from '../shared/SeverityBadge.vue';
-import StatusBadge from '../shared/StatusBadge.vue';
+import SeverityBadge from './SeverityBadge.vue';
+import StatusBadge from './StatusBadge.vue';
 import type {SecurityAlert} from '../../types';
 
 defineProps<{ alert: SecurityAlert | null }>();
 const emit = defineEmits<{ close: [] }>();
 
 type Field = { label: string; value: string; icon: Component; mono?: boolean };
+
+function fieldTextClass(mono?: boolean): string {
+  return mono ? 'font-mono' : '';
+}
 
 function alertFields(a: SecurityAlert): Field[] {
   switch (a.type) {
@@ -181,6 +172,30 @@ function alertFields(a: SecurityAlert): Field[] {
 </script>
 
 <style scoped>
+.dialog-panel {
+  @apply relative w-full sm:max-w-lg bg-slate-800 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[90vh];
+}
+
+.dialog-header {
+  @apply flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-700 flex-shrink-0;
+}
+
+.dialog-icon {
+  @apply w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0;
+}
+
+.dialog-body {
+  @apply flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3;
+}
+
+.dialog-footer {
+  @apply flex justify-end px-4 sm:px-6 py-3 border-t border-slate-700 flex-shrink-0;
+}
+
+.field-label {
+  @apply text-xs text-slate-500 mb-1 flex items-center gap-1.5;
+}
+
 .dialog-enter-active,
 .dialog-leave-active {
   transition: opacity 0.25s ease;

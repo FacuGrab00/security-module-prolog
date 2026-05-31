@@ -20,8 +20,8 @@
 import {ref} from 'vue'
 import {Play} from '@lucide/vue'
 import AppButton from '../shared/AppButton.vue'
-import QueryCard from '../shared/QueryCard.vue'
-import QueryResult from '../shared/QueryResult.vue'
+import QueryCard from '../prolog/QueryCard.vue'
+import QueryResult from '../prolog/QueryResult.vue'
 import {auditQueries} from '../../mock/data'
 import {useAppStore} from '../../stores/app'
 

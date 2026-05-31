@@ -1,19 +1,19 @@
 <template>
-  <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden flex flex-col max-h-[80vh]">
+  <div class="app-card flex flex-col max-h-[80vh]">
 
     <!-- Header -->
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
       <div class="flex items-center gap-2">
         <ShieldCheck class="w-4 h-4 text-emerald-400"/>
         <h2 class="app-section-title">Lista Blanca</h2>
-        <span class="text-xs px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
+        <span class="status-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
           {{ store.whitelist.length }} IPs
         </span>
       </div>
       <button @click="load" :disabled="loading"
               class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
               title="Recargar">
-        <RefreshCw class="w-3.5 h-3.5" :class="loading ? 'animate-spin' : ''"/>
+        <RefreshCw class="w-3.5 h-3.5" :class="reloadIconClass"/>
       </button>
     </div>
 
@@ -30,11 +30,10 @@
                :class="inputBorder">
             <span class="text-slate-500 text-xs mr-2 font-mono">IP:</span>
             <input v-model="ip" type="text" placeholder="ej: 192.168.1.100"
-                   class="mono-input"
-                   @keydown.enter="add"/>
+                   class="mono-input" @keydown.enter="add"/>
           </div>
-          <AppButton variant="emerald" size="sm" :loading="adding"
-                     :disabled="!ip.trim() || !isValidIP(ip)" @click="add">
+          <AppButton variant="emerald" size="sm" :loading="adding" :disabled="!ip.trim() || !isValidIP(ip)"
+                     @click="add">
             <template #icon>
               <Plus class="w-3 h-3"/>
             </template>
@@ -48,55 +47,56 @@
 
       <!-- Lista -->
       <div class="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1">
-        <div v-if="store.whitelist.length === 0" class="text-center py-8 text-slate-500 text-xs">
-          <ShieldCheck class="w-8 h-8 mx-auto mb-2 opacity-20"/>
-          <p>No hay IPs en la lista blanca</p>
-        </div>
-        <div v-for="entry in store.whitelist" :key="entry.ip" class="ip-list-item group">
-          <div class="flex items-center gap-2 min-w-0">
-            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"/>
-            <span class="text-sm font-mono text-white">{{ entry.ip }}</span>
-          </div>
-          <button @click="remove(entry.ip)" :disabled="removing === entry.ip"
-                  class="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
-                  title="Eliminar de lista blanca">
-            <div v-if="removing === entry.ip"
-                 class="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin"/>
-            <Trash2 v-else class="w-3 h-3"/>
-          </button>
-        </div>
+        <EmptyState v-if="store.whitelist.length === 0" title="No hay IPs en la lista blanca">
+          <template #icon>
+            <ShieldCheck class="w-8 h-8 opacity-20 mb-1"/>
+          </template>
+        </EmptyState>
+        <IPListItem
+            v-for="entry in store.whitelist"
+            :key="entry.ip"
+            :ip="entry.ip"
+            :removing="removing === entry.ip"
+            variant="emerald"
+            @remove="remove(entry.ip)"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
-import {ShieldCheck, RefreshCw, Plus, Trash2} from '@lucide/vue'
-import AppButton from './AppButton.vue'
-import {toast} from 'vue-sonner'
-import {useIpListsStore} from '../../stores/ipLists'
+import {ref, computed, onMounted} from 'vue';
+import {ShieldCheck, RefreshCw, Plus} from '@lucide/vue';
+import AppButton from './AppButton.vue';
+import EmptyState from './EmptyState.vue';
+import IPListItem from './IPListItem.vue';
+import {toast} from 'vue-sonner';
+import {useIpListsStore} from '../../stores/ipLists';
 
-const store = useIpListsStore()
-onMounted(load)
-const ip = ref('')
-const adding = ref(false)
-const removing = ref<string | null>(null)
-const loading = ref(false)
+const store = useIpListsStore();
+onMounted(load);
+
+const ip = ref('');
+const adding = ref(false);
+const removing = ref<string | null>(null);
+const loading = ref(false);
+
+const reloadIconClass = computed(() => loading.value ? 'animate-spin' : '');
 
 const inBlacklist = computed(() =>
     isValidIP(ip.value) && store.blacklist.some(e => e.ip === ip.value.trim())
-)
+);
 
 const inputBorder = computed(() => {
-  if (ip.value && !isValidIP(ip.value)) return 'border-red-500/60'
-  if (inBlacklist.value) return 'border-orange-500/60'
-  return 'border-slate-600 focus-within:border-emerald-500'
-})
+  if (ip.value && !isValidIP(ip.value)) return 'border-red-500/60';
+  if (inBlacklist.value) return 'border-orange-500/60';
+  return 'border-slate-600 focus-within:border-emerald-500';
+});
 
 function isValidIP(val: string) {
   return /^\d{1,3}(\.\d{1,3}){3}$/.test(val.trim()) &&
-      val.trim().split('.').every(o => parseInt(o) <= 255)
+      val.trim().split('.').every(o => parseInt(o) <= 255);
 }
 
 async function load() {

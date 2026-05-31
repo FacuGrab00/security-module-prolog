@@ -10,6 +10,7 @@
 
 <script setup lang="ts">
 import AppButton from '../shared/AppButton.vue'
+
 defineProps<{ page: number; totalPages: number }>()
 const emit = defineEmits<{ 'update:page': [value: number] }>()
 </script>

@@ -20,7 +20,7 @@
 import {ref, computed} from 'vue'
 import {BookOpen, Tag, Zap} from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
-import RuleCard from '../components/shared/RuleCard.vue'
+import RuleCard from '../components/prolog/RuleCard.vue'
 import StatCard from '../components/shared/StatCard.vue'
 import FilterTabs from '../components/shared/FilterTabs.vue'
 import {prologRulesDefinitions} from '../mock/data'

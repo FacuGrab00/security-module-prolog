@@ -1,6 +1,7 @@
 <template>
   <div class="bg-slate-800/50 border rounded-xl overflow-hidden transition-all" :class="borderClass">
-    <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-800/80">
+    <div
+        class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-800/80">
       <div class="flex items-center gap-2 min-w-0">
         <span class="text-xs font-mono text-slate-500 flex-shrink-0">{{ rule.id }}</span>
         <span class="text-sm font-mono font-semibold text-white truncate">{{ rule.name }}</span>
@@ -20,9 +21,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import {computed} from 'vue';
 import PrologCode from './PrologCode.vue';
-import type { PrologRule } from '../../types';
+import type {PrologRule} from '../../types';
 
 const props = defineProps<{ rule: PrologRule }>();
 

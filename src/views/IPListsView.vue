@@ -10,6 +10,6 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/layout/AppHeader.vue'
-import WhitelistPanel from '../components/shared/WhitelistPanel.vue'
-import BlacklistPanel from '../components/shared/BlacklistPanel.vue'
+import WhitelistPanel from '../components/ip/WhitelistPanel.vue'
+import BlacklistPanel from '../components/ip/BlacklistPanel.vue'
 </script>

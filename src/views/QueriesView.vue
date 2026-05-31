@@ -19,5 +19,5 @@ import QueryCardQ1 from '../components/queries/QueryCardQ1.vue'
 import QueryCardQ2 from '../components/queries/QueryCardQ2.vue'
 import QueryCardQ3 from '../components/queries/QueryCardQ3.vue'
 import QueryCardQ4 from '../components/queries/QueryCardQ4.vue'
-import FreeQueryPanel from '../components/shared/FreeQueryPanel.vue'
+import FreeQueryPanel from '../components/prolog/FreeQueryPanel.vue'
 </script>

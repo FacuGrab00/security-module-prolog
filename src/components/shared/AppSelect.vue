@@ -17,9 +17,9 @@ import {ChevronDown} from '@lucide/vue'
 
 withDefaults(defineProps<{
   modelValue: string
-  options:    { value: string; label: string }[]
-  size?:      'sm' | 'md'
-}>(), { size: 'sm' })
+  options: { value: string; label: string }[]
+  size?: 'sm' | 'md'
+}>(), {size: 'sm'})
 
 defineEmits<{ 'update:modelValue': [value: string] }>()
 </script>
