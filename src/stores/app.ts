@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { postJson } from '../utils/api'
 import { useAlertsStore } from './alerts'
 import { useIpListsStore } from './ipLists'
@@ -17,7 +17,10 @@ export const useAppStore = defineStore('app', () => {
   const isLoading    = ref(false)
   const prologOnline = ref(false)
   const prologStats  = ref<PrologStats | null>(null)
-  const loadedFiles  = ref<LoadedFile[]>([])
+
+  const _savedFiles = sessionStorage.getItem('loadedFiles')
+  const loadedFiles = ref<LoadedFile[]>(_savedFiles ? JSON.parse(_savedFiles) : [])
+  watch(loadedFiles, val => sessionStorage.setItem('loadedFiles', JSON.stringify(val)), { deep: true })
 
   const stats = computed(() => {
     const alertsStore = useAlertsStore()

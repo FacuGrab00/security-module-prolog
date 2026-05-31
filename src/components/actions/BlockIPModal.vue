@@ -21,6 +21,19 @@
 
         <!-- Body -->
         <div class="px-6 py-5 space-y-4">
+
+          <!-- Contexto de la alerta -->
+          <div v-if="props.alert" class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3 space-y-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold uppercase tracking-wide" :class="severityColor[props.alert.severity]">
+                {{ severityLabel[props.alert.severity] }}
+              </span>
+              <span class="text-xs text-slate-500 font-mono">{{ props.alert.id }}</span>
+            </div>
+            <p class="text-sm font-semibold text-white">{{ props.alert.label }}</p>
+            <p class="text-xs text-slate-400 leading-relaxed">{{ props.alert.description }}</p>
+          </div>
+
           <div>
             <label class="block text-xs text-slate-400 mb-1.5 font-medium">Dirección IP</label>
             <input
@@ -61,14 +74,6 @@
             </div>
           </div>
 
-          <!-- Advertencia -->
-          <div class="flex items-start gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2.5">
-            <AlertTriangle class="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-            <p class="text-xs text-red-300">
-              Esta acción se registrará en el log de auditoría del sistema.
-              El motor Prolog actualizará su base de hechos inmediatamente.
-            </p>
-          </div>
         </div>
 
         <!-- Footer -->
@@ -93,11 +98,19 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { Ban, X, AlertTriangle } from '@lucide/vue'
+import { Ban, X } from '@lucide/vue'
 import { useIpListsStore } from '../../stores/ipLists'
+import type { SecurityAlert } from '../../types'
 
-const props  = defineProps<{ ip?: string }>()
+const props  = defineProps<{ ip?: string; alert?: SecurityAlert | null }>()
 const emit   = defineEmits<{ close: []; confirmed: [ip: string] }>()
+
+const severityColor: Record<string, string> = {
+  critical: 'text-red-400', high: 'text-orange-400', medium: 'text-yellow-400', low: 'text-blue-400',
+}
+const severityLabel: Record<string, string> = {
+  critical: 'Crítica', high: 'Alta', medium: 'Media', low: 'Baja',
+}
 const store  = useIpListsStore()
 
 const form = reactive({ ip: props.ip ?? '', reason: '', duration: 'permanent' })
@@ -110,7 +123,7 @@ const durationOptions = [
 
 function confirm() {
   if (!form.ip || !form.reason) return
-  store.blockIP(form.ip, form.reason, 'Administrador')
+  store.blockIP(form.ip, form.reason, 'Administrador', form.duration)
   emit('confirmed', form.ip)
   emit('close')
 }

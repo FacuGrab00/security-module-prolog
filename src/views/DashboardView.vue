@@ -28,6 +28,7 @@
     <BlockIPModal
       v-if="blockModal.open"
       :ip="blockModal.ip"
+      :alert="blockModal.alert"
       @close="blockModal.open = false"
       @confirmed="onBlocked"
     />
@@ -43,13 +44,17 @@ import BlockedIPsPanel from '../components/dashboard/BlockedIPsPanel.vue'
 import CSVUploader     from '../components/dashboard/CSVUploader.vue'
 import BlockIPModal    from '../components/actions/BlockIPModal.vue'
 import { useAppStore } from '../stores/app'
+import type { SecurityAlert } from '../types'
 
 const store      = useAppStore()
-const blockModal = reactive({ open: false, ip: '' })
+const blockModal = reactive<{ open: boolean; ip: string; alert: SecurityAlert | null }>({
+  open: false, ip: '', alert: null,
+})
 
-// Carga datos reales del motor Prolog al iniciar
 onMounted(() => store.fetchAll())
 
-function openBlockModal(ip: string) { blockModal.ip = ip; blockModal.open = true }
-function onBlocked(_ip: string)     { blockModal.open = false }
+function openBlockModal(ip: string, alert: SecurityAlert) {
+  blockModal.ip = ip; blockModal.alert = alert; blockModal.open = true
+}
+function onBlocked(_ip: string) { blockModal.open = false }
 </script>

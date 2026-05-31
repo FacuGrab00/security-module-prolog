@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { SecurityAlert, AlertStatus } from '../types'
 import { prologAlertToUI, alertIP } from '../utils/prologMapper'
 import type { PrologAlert } from '../utils/prologMapper'
@@ -7,13 +7,17 @@ import type { PrologAlert } from '../utils/prologMapper'
 export const useAlertsStore = defineStore('alerts', () => {
   const alerts = ref<SecurityAlert[]>([])
 
+  const _savedDismissed = sessionStorage.getItem('dismissedAlerts')
+  const dismissedIds = ref<Set<string>>(new Set(_savedDismissed ? JSON.parse(_savedDismissed) : []))
+  watch(dismissedIds, val => sessionStorage.setItem('dismissedAlerts', JSON.stringify([...val])), { deep: true })
+
   const activeAlerts   = computed(() => alerts.value.filter(a => a.status === 'active'))
   const criticalAlerts = computed(() => alerts.value.filter(a => a.severity === 'critical'))
 
   async function fetchAlerts() {
     const res  = await fetch('/api/alerts')
     const body = await res.json() as { alerts: PrologAlert[] }
-    alerts.value = body.alerts.map(prologAlertToUI)
+    alerts.value = body.alerts.map(prologAlertToUI).filter(a => !dismissedIds.value.has(a.id))
   }
 
   function syncResolved(blockedSet: Set<string>) {
@@ -35,6 +39,7 @@ export const useAlertsStore = defineStore('alerts', () => {
   }
 
   function dismissAlert(id: string) {
+    dismissedIds.value = new Set([...dismissedIds.value, id])
     const idx = alerts.value.findIndex(a => a.id === id)
     if (idx !== -1) alerts.value.splice(idx, 1)
   }

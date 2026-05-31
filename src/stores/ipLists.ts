@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { safeJson, postJson } from '../utils/api'
 import { useAlertsStore } from './alerts'
 
@@ -9,7 +9,11 @@ export interface WhitelistEntry { ip: string }
 export const useIpListsStore = defineStore('ipLists', () => {
   const blacklist  = ref<BlacklistEntry[]>([])
   const whitelist  = ref<WhitelistEntry[]>([])
-  const blockedIPs = ref<{ ip: string; reason: string; blockedAt: string; blockedBy: string }[]>([])
+  const _savedBlocked = sessionStorage.getItem('blockedIPs')
+  const blockedIPs = ref<{ ip: string; reason: string; blockedAt: string; blockedBy: string; expiresAt: string }[]>(
+    _savedBlocked ? JSON.parse(_savedBlocked) : []
+  )
+  watch(blockedIPs, val => sessionStorage.setItem('blockedIPs', JSON.stringify(val)), { deep: true })
 
   const allBlockedIPSet = computed(() => new Set([
     ...blockedIPs.value.map(b => b.ip),
@@ -26,9 +30,19 @@ export const useIpListsStore = defineStore('ipLists', () => {
     if (body.ok !== false) whitelist.value = ((body.whitelist as string[]) ?? []).map(ip => ({ ip }))
   }
 
-  function blockIP(ip: string, reason: string, blockedBy: string) {
+  const DURATION_LABEL: Record<string, string> = {
+    '24h':       '24 horas',
+    '7d':        '7 días',
+    'permanent': 'Permanente',
+  }
+
+  function blockIP(ip: string, reason: string, blockedBy: string, duration = 'permanent') {
     if (!blockedIPs.value.find(b => b.ip === ip)) {
-      blockedIPs.value.unshift({ ip, reason, blockedAt: new Date().toLocaleString('es-AR'), blockedBy })
+      blockedIPs.value.unshift({
+        ip, reason, blockedBy,
+        blockedAt: new Date().toLocaleString('es-AR'),
+        expiresAt: DURATION_LABEL[duration] ?? 'Permanente',
+      })
     }
     useAlertsStore().markIPResolved(ip)
   }
