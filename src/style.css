@@ -3,34 +3,75 @@
 @tailwind utilities;
 
 :root {
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  margin: 0;
-  background-color: #0f172a;
-  color: #e2e8f0;
+    margin: 0;
+    background-color: #0f172a;
+    color: #e2e8f0;
 }
 
 #app {
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 /* Scrollbar personalizada */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+    width: 6px;
+    height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+    background: #1e293b;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
+    background: #334155;
+    border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #0ea5e9;
+    background: #0ea5e9;
+}
+
+/* ─── Clases globales del sistema ─────────────────────────────────────────── */
+@layer components {
+    /* Card base usada en paneles y secciones */
+    .app-card {
+        @apply bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden;
+    }
+
+    /* Header de sección dentro de una card */
+    .app-card-header {
+        @apply flex items-center justify-between px-4 sm:px-5 py-4 border-b border-slate-700;
+    }
+
+    /* Título de sección */
+    .app-section-title {
+        @apply text-white font-semibold text-sm;
+    }
+
+    /* Caja de campo informativo (usada en dialog de detalles) */
+    .field-box {
+        @apply bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2.5;
+    }
+
+    /* Fila de lista de IP */
+    .ip-list-item {
+        @apply flex items-center justify-between gap-3 px-3 py-2 bg-slate-900/60 border border-slate-700 hover:border-slate-600 rounded-lg transition-colors;
+    }
+
+    /* Input monoespaciado transparente */
+    .mono-input {
+        @apply flex-1 bg-transparent text-white text-xs py-2.5 focus:outline-none font-mono placeholder-slate-600;
+    }
+
+    /* Badge de estado/categoría genérico */
+    .status-badge {
+        @apply text-xs px-2 py-0.5 rounded-full;
+    }
 }

@@ -55,10 +55,10 @@ onMounted(() => store.fetchAll())
 function openBlockModal(ip: string, alert: SecurityAlert) {
   blockModal.ip = ip;
   blockModal.alert = alert;
-  blockModal.open = true
+  blockModal.open = true;
 }
 
 function onBlocked(_ip: string) {
-  blockModal.open = false
+  blockModal.open = false;
 }
 </script>

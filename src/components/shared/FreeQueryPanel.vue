@@ -2,7 +2,7 @@
   <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
     <div class="flex items-center gap-2 px-4 sm:px-5 py-4 border-b border-slate-700">
       <Terminal class="w-4 h-4 text-cyan-400 flex-shrink-0"/>
-      <h3 class="text-white font-semibold text-sm">Consulta Libre</h3>
+      <h3 class="app-section-title">Consulta Libre</h3>
     </div>
     <div class="px-4 sm:px-5 py-4 space-y-3">
       <div class="flex flex-col sm:flex-row gap-2">
@@ -18,7 +18,9 @@
           />
         </div>
         <AppButton variant="primary" :loading="loading" @click="run">
-          <template #icon><Play class="w-4 h-4" /></template>
+          <template #icon>
+            <Play class="w-4 h-4"/>
+          </template>
           Ejecutar
         </AppButton>
       </div>

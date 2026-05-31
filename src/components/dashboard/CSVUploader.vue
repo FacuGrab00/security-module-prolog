@@ -1,26 +1,27 @@
 <template>
   <div class="bg-slate-800/50 border border-slate-700 rounded-xl">
     <div class="flex items-center gap-2 px-4 sm:px-5 py-4 border-b border-slate-700">
-      <Upload class="w-4 h-4 text-cyan-400 flex-shrink-0" />
-      <h2 class="text-white font-semibold text-sm">Ingesta de Datos CSV</h2>
+      <Upload class="w-4 h-4 text-cyan-400 flex-shrink-0"/>
+      <h2 class="app-section-title">Ingesta de Datos CSV</h2>
     </div>
 
     <div class="px-4 sm:px-5 py-4 space-y-4">
       <!-- Zona de drop -->
       <div
-        class="border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all cursor-pointer"
-        :class="isDragging
+          class="border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all cursor-pointer"
+          :class="isDragging
           ? 'border-cyan-500 bg-cyan-500/10'
           : 'border-slate-600 hover:border-slate-500 hover:bg-slate-700/30'"
-        @dragover.prevent="isDragging = true"
-        @dragleave="isDragging = false"
-        @drop.prevent="handleDrop"
-        @click="fileInput?.click()"
+          @dragover.prevent="isDragging = true"
+          @dragleave="isDragging = false"
+          @drop.prevent="handleDrop"
+          @click="fileInput?.click()"
       >
-        <Upload class="w-8 h-8 text-slate-400 mx-auto mb-2" />
-        <p class="text-sm text-slate-300">Arrastrá tu CSV aquí o <span class="text-cyan-400 font-medium">hacé click</span></p>
+        <Upload class="w-8 h-8 text-slate-400 mx-auto mb-2"/>
+        <p class="text-sm text-slate-300">Arrastrá tu CSV aquí o <span
+            class="text-cyan-400 font-medium">hacé click</span></p>
         <p class="text-xs text-slate-500 mt-1">Formato: timestamp, usuario, ip, accion, resultado</p>
-        <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="handleFileChange" />
+        <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="handleFileChange"/>
       </div>
 
       <!-- Formato esperado -->
@@ -34,28 +35,29 @@
       <!-- Botones -->
       <div class="flex gap-2">
         <button
-          @click="loadDemo"
-          :disabled="store.isLoading"
-          class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-400 text-sm rounded-lg transition-colors disabled:opacity-50"
+            @click="loadDemo"
+            :disabled="store.isLoading"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-400 text-sm rounded-lg transition-colors disabled:opacity-50"
         >
-          <FlaskConical class="w-4 h-4" />
+          <FlaskConical class="w-4 h-4"/>
           Cargar demo
         </button>
 
         <button
-          v-if="store.loadedFiles.length > 0"
-          @click="confirmClear"
-          :disabled="store.isLoading"
-          class="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm rounded-lg transition-colors disabled:opacity-50"
+            v-if="store.loadedFiles.length > 0"
+            @click="confirmClear"
+            :disabled="store.isLoading"
+            class="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm rounded-lg transition-colors disabled:opacity-50"
         >
-          <Trash2 class="w-4 h-4" />
+          <Trash2 class="w-4 h-4"/>
           Limpiar todo
         </button>
       </div>
 
       <!-- Estado de carga -->
-      <div v-if="store.isLoading" class="flex items-center gap-3 px-3 py-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
-        <div class="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+      <div v-if="store.isLoading"
+           class="flex items-center gap-3 px-3 py-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+        <div class="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin flex-shrink-0"/>
         <div>
           <p class="text-xs text-cyan-300 font-medium">Analizando con motor Prolog...</p>
           <p class="text-xs text-slate-500">Convirtiendo CSV a hechos y evaluando reglas</p>
@@ -66,19 +68,19 @@
       <div v-if="store.loadedFiles.length > 0" class="space-y-1">
         <p class="text-xs text-slate-400 font-medium mb-2">Archivos en memoria</p>
         <div
-          v-for="(file, i) in store.loadedFiles"
-          :key="i"
-          class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg"
+            v-for="(file, i) in store.loadedFiles"
+            :key="i"
+            class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg"
         >
           <div class="flex items-center gap-2 min-w-0">
-            <FileText class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+            <FileText class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"/>
             <span class="text-xs text-slate-300 truncate font-mono">{{ file.name }}</span>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0 text-xs">
             <span class="text-emerald-400 font-medium">+{{ file.recordsAdded }}</span>
             <span
-              v-if="file.recordsSkipped > 0"
-              class="text-amber-400"
+                v-if="file.recordsSkipped > 0"
+                class="text-amber-400"
             >{{ file.recordsSkipped }} dup.</span>
             <span class="text-slate-500">{{ file.loadedAt }}</span>
           </div>
@@ -89,25 +91,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Upload, FlaskConical, Trash2, FileText } from '@lucide/vue'
-import { toast } from 'vue-sonner'
-import { useAppStore } from '../../stores/app'
+import {ref} from 'vue'
+import {Upload, FlaskConical, Trash2, FileText} from '@lucide/vue'
+import {toast} from 'vue-sonner'
+import {useAppStore} from '../../stores/app'
 
-const store      = useAppStore()
-const fileInput  = ref<HTMLInputElement | null>(null)
+const store = useAppStore()
+const fileInput = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 
 // ─── Columnas requeridas (en orden) ──────────────────────────────────────────
 const REQUIRED_HEADERS = ['timestamp', 'usuario', 'ip', 'accion', 'resultado']
-const VALID_RESULTS     = new Set(['exito', 'fallo'])
+const VALID_RESULTS = new Set(['exito', 'fallo'])
 
 // ─── Validación del CSV ───────────────────────────────────────────────────────
 
 interface ValidationResult {
-  ok:     boolean
+  ok: boolean
   errors: string[]
-  rows:   number
+  rows: number
 }
 
 function validateCSV(content: string): ValidationResult {
@@ -115,28 +117,28 @@ function validateCSV(content: string): ValidationResult {
   const lines = content.trim().split('\n').filter(Boolean)
 
   if (lines.length === 0) {
-    return { ok: false, errors: ['El archivo está vacío.'], rows: 0 }
+    return {ok: false, errors: ['El archivo está vacío.'], rows: 0}
   }
 
   // 1. Validar cabecera
   const rawHeader = lines[0].trim().toLowerCase()
-  const headers   = rawHeader.split(',').map(h => h.trim())
+  const headers = rawHeader.split(',').map(h => h.trim())
 
   if (headers.length !== REQUIRED_HEADERS.length) {
     errors.push(
-      `La cabecera tiene ${headers.length} columna(s) pero se esperan ${REQUIRED_HEADERS.length}. ` +
-      `Esperado: ${REQUIRED_HEADERS.join(', ')}`
+        `La cabecera tiene ${headers.length} columna(s) pero se esperan ${REQUIRED_HEADERS.length}. ` +
+        `Esperado: ${REQUIRED_HEADERS.join(', ')}`
     )
-    return { ok: false, errors, rows: 0 }
+    return {ok: false, errors, rows: 0}
   }
 
   const wrongCols = REQUIRED_HEADERS
-    .map((h, i) => headers[i] !== h ? `columna ${i + 1}: se esperaba "${h}", se encontró "${headers[i]}"` : null)
-    .filter(Boolean) as string[]
+      .map((h, i) => headers[i] !== h ? `columna ${i + 1}: se esperaba "${h}", se encontró "${headers[i]}"` : null)
+      .filter(Boolean) as string[]
 
   if (wrongCols.length > 0) {
     errors.push(`Cabecera incorrecta — ${wrongCols.join('; ')}`)
-    return { ok: false, errors, rows: 0 }
+    return {ok: false, errors, rows: 0}
   }
 
   // 2. Validar filas de datos
@@ -144,13 +146,13 @@ function validateCSV(content: string): ValidationResult {
 
   if (dataLines.length === 0) {
     errors.push('El CSV sólo tiene cabecera, no hay filas de datos.')
-    return { ok: false, errors, rows: 0 }
+    return {ok: false, errors, rows: 0}
   }
 
   const rowErrors: string[] = []
 
   dataLines.forEach((line, idx) => {
-    const row    = line.trim()
+    const row = line.trim()
     if (!row) return
     const fields = row.split(',').map(f => f.trim())
     const lineNum = idx + 2   // +1 cabecera, +1 base-1
@@ -176,7 +178,7 @@ function validateCSV(content: string): ValidationResult {
 
     if (!VALID_RESULTS.has(resultado.toLowerCase())) {
       rowErrors.push(
-        `Línea ${lineNum}: el resultado "${resultado}" no es válido (debe ser "exito" o "fallo")`
+          `Línea ${lineNum}: el resultado "${resultado}" no es válido (debe ser "exito" o "fallo")`
       )
     }
   })
@@ -185,10 +187,10 @@ function validateCSV(content: string): ValidationResult {
     const shown = rowErrors.slice(0, 5)
     if (rowErrors.length > 5) shown.push(`… y ${rowErrors.length - 5} error(es) más`)
     errors.push(...shown)
-    return { ok: false, errors, rows: 0 }
+    return {ok: false, errors, rows: 0}
   }
 
-  return { ok: true, errors: [], rows: dataLines.filter(l => l.trim()).length }
+  return {ok: true, errors: [], rows: dataLines.filter(l => l.trim()).length}
 }
 
 // ─── Procesamiento ────────────────────────────────────────────────────────────
@@ -202,7 +204,7 @@ async function processContent(content: string, filename: string) {
       duration: 8000,
     })
     validation.errors.slice(1).forEach(err => {
-      toast.warning(err, { duration: 8000 })
+      toast.warning(err, {duration: 8000})
     })
     return
   }
@@ -214,9 +216,9 @@ async function processContent(content: string, filename: string) {
       // records_added: servidor nuevo (acumulativo)
       // records_loaded: servidor viejo (fallback de compatibilidad)
       // validation.rows: último recurso si el servidor no devuelve nada
-      const added   = body.records_added   ?? body.records_loaded ?? validation.rows
+      const added = body.records_added ?? body.records_loaded ?? validation.rows
       const skipped = body.records_skipped ?? 0
-      const total   = body.total_in_db     ?? body.records_loaded ?? added
+      const total = body.total_in_db ?? body.records_loaded ?? added
 
       if (skipped > 0) {
         toast.success(`${added} registros nuevos cargados`, {
@@ -268,7 +270,8 @@ async function confirmClear() {
 function handleFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  ;(e.target as HTMLInputElement).value = ''
+      ;
+  (e.target as HTMLInputElement).value = ''
 
   if (!file.name.toLowerCase().endsWith('.csv')) {
     toast.error('Tipo de archivo no válido', {

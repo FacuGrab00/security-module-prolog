@@ -197,7 +197,7 @@ export function alertIP(alert: SecurityAlert): string | null {
 }
 
 
-export function prologAlertToUI(a: PrologAlert, _index: number): SecurityAlert {
+export function prologAlertToUI(a: PrologAlert): SecurityAlert {
   const typeKey = a.type as SecurityAlert['type']
   const payloadKey = Object.values(a.payload).join('-')
   const id = `${a.type}-${payloadKey}`

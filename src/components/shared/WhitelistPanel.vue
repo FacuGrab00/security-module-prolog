@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
       <div class="flex items-center gap-2">
         <ShieldCheck class="w-4 h-4 text-emerald-400"/>
-        <h2 class="text-white font-semibold text-sm">Lista Blanca</h2>
+        <h2 class="app-section-title">Lista Blanca</h2>
         <span class="text-xs px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
           {{ store.whitelist.length }} IPs
         </span>
@@ -30,12 +30,14 @@
                :class="inputBorder">
             <span class="text-slate-500 text-xs mr-2 font-mono">IP:</span>
             <input v-model="ip" type="text" placeholder="ej: 192.168.1.100"
-                   class="flex-1 bg-transparent text-white text-xs py-2.5 focus:outline-none font-mono placeholder-slate-600"
+                   class="mono-input"
                    @keydown.enter="add"/>
           </div>
           <AppButton variant="emerald" size="sm" :loading="adding"
-            :disabled="!ip.trim() || !isValidIP(ip)" @click="add">
-            <template #icon><Plus class="w-3 h-3" /></template>
+                     :disabled="!ip.trim() || !isValidIP(ip)" @click="add">
+            <template #icon>
+              <Plus class="w-3 h-3"/>
+            </template>
             Agregar
           </AppButton>
         </div>
@@ -50,8 +52,7 @@
           <ShieldCheck class="w-8 h-8 mx-auto mb-2 opacity-20"/>
           <p>No hay IPs en la lista blanca</p>
         </div>
-        <div v-for="entry in store.whitelist" :key="entry.ip"
-             class="flex items-center justify-between gap-3 px-3 py-2 bg-slate-900/60 border border-slate-700 hover:border-slate-600 rounded-lg group transition-colors">
+        <div v-for="entry in store.whitelist" :key="entry.ip" class="ip-list-item group">
           <div class="flex items-center gap-2 min-w-0">
             <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"/>
             <span class="text-sm font-mono text-white">{{ entry.ip }}</span>
@@ -99,54 +100,57 @@ function isValidIP(val: string) {
 }
 
 async function load() {
-  loading.value = true
+  loading.value = true;
   try {
-    await store.fetchWhitelist()
+    await store.fetchWhitelist();
   } catch {
-    toast.error('No se pudo recargar la lista blanca', {duration: 5000})
+    toast.error('No se pudo recargar la lista blanca', {duration: 5000});
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function add() {
-  const val = ip.value.trim()
-  if (!val || !isValidIP(val)) return
+  const val = ip.value.trim();
+  if (!val || !isValidIP(val)) return;
   if (store.blacklist.some(e => e.ip === val)) {
     toast.error(`${val} ya está en la lista negra`, {
       description: 'Eliminala de la lista negra antes de agregarla como confiable.',
-      duration: 6000
-    })
-    return
+      duration: 6000,
+    });
+    return;
   }
-  adding.value = true
+  adding.value = true;
   try {
-    const body = await store.addToWhitelist(val)
+    const body = await store.addToWhitelist(val);
     if (body.ok) {
       toast.success(`${val} agregada a la lista blanca`, {duration: 4000});
-      ip.value = ''
-    } else if (body.error) toast.error('Motor Prolog no disponible', {
-      description: 'Reiniciá el servidor con: swipl server.pl',
-      duration: 7000
-    })
-    else toast.warning(String(body.message ?? 'La IP ya está en la lista'), {duration: 5000})
+      ip.value = '';
+    } else if (body.error) {
+      toast.error('Motor Prolog no disponible', {description: 'Reiniciá el servidor con: swipl server.pl', duration: 7000});
+    } else {
+      toast.warning(String(body.message ?? 'La IP ya está en la lista'), {duration: 5000});
+    }
   } catch {
-    toast.error('Error al contactar el motor Prolog', {duration: 5000})
+    toast.error('Error al contactar el motor Prolog', {duration: 5000});
   } finally {
-    adding.value = false
+    adding.value = false;
   }
 }
 
 async function remove(val: string) {
-  removing.value = val
+  removing.value = val;
   try {
-    const body = await store.removeFromWhitelist(val)
-    if (body.ok) toast.success(`${val} eliminada de la lista blanca`, {duration: 4000})
-    else toast.warning(String(body.message ?? 'No se pudo eliminar'), {duration: 5000})
+    const body = await store.removeFromWhitelist(val);
+    if (body.ok) {
+      toast.success(`${val} eliminada de la lista blanca`, {duration: 4000});
+    } else {
+      toast.warning(String(body.message ?? 'No se pudo eliminar'), {duration: 5000});
+    }
   } catch {
-    toast.error('Error al contactar el motor Prolog', {duration: 5000})
+    toast.error('Error al contactar el motor Prolog', {duration: 5000});
   } finally {
-    removing.value = null
+    removing.value = null;
   }
 }
 </script>

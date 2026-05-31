@@ -1,8 +1,8 @@
 <template>
   <div class="bg-slate-800/50 border border-slate-700 rounded-xl">
     <div class="flex items-center gap-2 px-4 sm:px-5 py-4 border-b border-slate-700">
-      <ShieldOff class="w-4 h-4 text-orange-400 flex-shrink-0" />
-      <h2 class="text-white font-semibold text-sm">IPs Bloqueadas</h2>
+      <ShieldOff class="w-4 h-4 text-orange-400 flex-shrink-0"/>
+      <h2 class="app-section-title">IPs Bloqueadas</h2>
       <span class="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
         {{ store.blockedIPs.length }}
       </span>
@@ -31,7 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import { ShieldOff } from '@lucide/vue'
-import { useIpListsStore } from '../../stores/ipLists'
+import {ShieldOff} from '@lucide/vue'
+import {useIpListsStore} from '../../stores/ipLists'
+
 const store = useIpListsStore()
 </script>
