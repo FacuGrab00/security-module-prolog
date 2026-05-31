@@ -1,20 +1,20 @@
 <template>
   <!-- Backdrop (mobile only) -->
   <div
-    v-if="sidebar.open.value"
-    class="fixed inset-0 bg-black/60 z-20 md:hidden"
-    @click="sidebar.close"
+      v-if="sidebar.open.value"
+      class="fixed inset-0 bg-black/60 z-20 md:hidden"
+      @click="sidebar.close"
   />
 
   <aside
-    class="fixed left-0 top-0 h-full w-64 bg-dark-900 border-r border-slate-800 flex flex-col z-30 transition-transform duration-300"
-    :class="sidebar.open.value ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+      class="fixed left-0 top-0 h-full w-64 bg-dark-900 border-r border-slate-800 flex flex-col z-30 transition-transform duration-300"
+      :class="sidebar.open.value ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
   >
     <!-- Logo -->
     <div class="px-6 py-5 border-b border-slate-800">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-          <Shield class="w-5 h-5 text-cyan-400" />
+          <Shield class="w-5 h-5 text-cyan-400"/>
         </div>
         <div>
           <p class="text-white font-semibold text-sm leading-tight">SecureAudit</p>
@@ -26,21 +26,21 @@
     <!-- Nav -->
     <nav class="flex-1 px-3 py-4 space-y-1">
       <RouterLink
-        v-for="item in navItems"
-        :key="item.to"
-        :to="item.to"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group"
-        :class="isActive(item.to)
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group"
+          :class="isActive(item.to)
           ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
           : 'text-slate-400 hover:text-white hover:bg-slate-800'"
-        @click="sidebar.close"
+          @click="sidebar.close"
       >
-        <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
+        <component :is="item.icon" class="w-4 h-4 flex-shrink-0"/>
         <span>{{ item.label }}</span>
         <span
-          v-if="item.badge"
-          class="ml-auto text-xs px-1.5 py-0.5 rounded-full"
-          :class="item.badgeColor ?? 'bg-slate-700 text-slate-300'"
+            v-if="item.badge"
+            class="ml-auto text-xs px-1.5 py-0.5 rounded-full"
+            :class="item.badgeColor ?? 'bg-slate-700 text-slate-300'"
         >{{ item.badge }}</span>
       </RouterLink>
     </nav>
@@ -49,21 +49,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText, ShieldHalf } from '@lucide/vue'
-import { useSidebar } from '../../composables/useSidebar'
+import {computed} from 'vue'
+import {useRoute} from 'vue-router'
+import {Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText, ShieldHalf} from '@lucide/vue'
+import {useSidebar} from '../../composables/useSidebar'
 
-const route   = useRoute()
+const route = useRoute()
 const sidebar = useSidebar()
 
 const navItems = computed(() => [
-  { to: '/',        label: 'Dashboard',      icon: LayoutDashboard },
-  { to: '/logs',    label: 'Logs de Acceso', icon: ScrollText },
-  { to: '/queries', label: 'Consultas Prolog', icon: Search },
-  { to: '/rules',   label: 'Base de Reglas', icon: BookOpen },
-  { to: '/listas',  label: 'Listas de IPs',  icon: ShieldHalf },
-  { to: '/report',  label: 'Reporte',        icon: FileText },
+  {to: '/', label: 'Dashboard', icon: LayoutDashboard},
+  {to: '/logs', label: 'Logs de Acceso', icon: ScrollText},
+  {to: '/queries', label: 'Consultas Prolog', icon: Search},
+  {to: '/rules', label: 'Base de Reglas', icon: BookOpen},
+  {to: '/listas', label: 'Listas de IPs', icon: ShieldHalf},
+  {to: '/report', label: 'Reporte', icon: FileText},
 ])
 
 function isActive(path: string) {

@@ -3,7 +3,9 @@
     <template #actions>
       <div class="mt-3 flex justify-end">
         <AppButton variant="cyan" size="sm" :loading="loading" @click="run">
-          <template #icon><Play class="w-3 h-3" /></template>
+          <template #icon>
+            <Play class="w-3 h-3"/>
+          </template>
           {{ loading ? 'Consultando...' : 'Ejecutar' }}
         </AppButton>
       </div>

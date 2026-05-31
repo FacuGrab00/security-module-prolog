@@ -10,7 +10,9 @@
                  @keydown.enter="run"/>
         </div>
         <AppButton variant="cyan" size="sm" :loading="loading" :disabled="!user.trim()" @click="run">
-          <template #icon><Play class="w-3 h-3" /></template>
+          <template #icon>
+            <Play class="w-3 h-3"/>
+          </template>
           {{ loading ? 'Consultando...' : 'Ejecutar' }}
         </AppButton>
       </div>

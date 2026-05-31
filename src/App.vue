@@ -6,9 +6,8 @@
     </main>
     <AppFooter/>
 
-    <!-- Toast notifications (vue-sonner) -->
     <Toaster
-        position="bottom-right"
+        position="bottom-center"
         :expand="true"
         :rich-colors="true"
         :close-button="true"
