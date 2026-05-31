@@ -24,6 +24,17 @@ rol_usuario(director_sis,   administrador).
 rol_usuario(root,           administrador).
 rol_usuario(respaldo_bd,    servicio).
 rol_usuario(monitor_red,    servicio).
+rol_usuario(scanner,        servicio).
+rol_usuario(jperez,         usuario_normal).
+rol_usuario(mlopez,         usuario_normal).
+rol_usuario(hacker01,       usuario_normal).
+rol_usuario(user_a,         usuario_normal).
+rol_usuario(user_b,         usuario_normal).
+rol_usuario(user_c,         usuario_normal).
+rol_usuario(mperez,         usuario_normal).
+rol_usuario(jgonzalez,      usuario_normal).
+rol_usuario(lrodriguez,     usuario_normal).
+rol_usuario(attacker,       usuario_normal).
 
 % --- HORARIO LABORAL ---------------------------------------------------------
 horario_permitido(8, 20).

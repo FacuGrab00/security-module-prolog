@@ -49,9 +49,14 @@ responder_estadisticas(_Request) :-
 % GET /api/alerts
 responder_alertas(_Request) :-
     cors_enable,
-    obtener_alertas_activas(Alertas),
-    maplist(alerta_como_json, Alertas, AlertasJSON),
-    reply_json_dict(_{alerts: AlertasJSON}).
+    catch(
+        (obtener_alertas_activas(Alertas),
+         maplist(alerta_como_json, Alertas, AlertasJSON),
+         reply_json_dict(_{alerts: AlertasJSON})),
+        Error,
+        (term_to_atom(Error, ErrAtom),
+         reply_json_dict(_{ok: false, error: ErrAtom}))
+    ).
 
 obtener_alertas_activas(Alertas) :-
     findall(a(critica, ataque_fuerza_bruta,      U,  IP),  ataque_fuerza_bruta(U, IP),       A1),
@@ -63,7 +68,11 @@ obtener_alertas_activas(Alertas) :-
     findall(a(alta,    login_cuenta_servicio,    U,  ''),  login_cuenta_servicio(U),          A7),
     findall(a(alta,    intento_escalada,         U,  ''),  intento_escalada(U),               A8),
     findall(a(media,   usuario_desconocido,      U,  IP),  usuario_desconocido(U, IP),        A9),
-    append([A1,A2,A3,A4,A5,A6,A7,A8,A9], Todas),
+    findall(a(alta,    actividad_red_dispersa,   U,  C),   actividad_red_dispersa(U, C),      A10),
+    findall(a(alta,    descarga_masiva,          U,  ''),  descarga_masiva(U),                A11),
+    findall(a(media,   origen_sospechoso,        U,  IP),  origen_sospechoso(U, IP),          A12),
+    findall(a(media,   horario_atipico,          U,  Ts),  horario_atipico(U, Ts),            A13),
+    append([A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13], Todas),
     list_to_set(Todas, Alertas).
 
 alerta_como_json(a(Sev, ataque_fuerza_bruta,      U,  IP), JSON) :-
@@ -84,6 +93,14 @@ alerta_como_json(a(Sev, intento_escalada,          U,  _),  JSON) :-
     JSON = _{severity: Sev, type: intento_escalada,          payload: _{user: U}}.
 alerta_como_json(a(Sev, usuario_desconocido,       U,  IP), JSON) :-
     JSON = _{severity: Sev, type: usuario_desconocido,       payload: _{user: U, ip: IP}}.
+alerta_como_json(a(Sev, actividad_red_dispersa,   U,  C),  JSON) :-
+    JSON = _{severity: Sev, type: actividad_red_dispersa,    payload: _{user: U, subnet_count: C}}.
+alerta_como_json(a(Sev, descarga_masiva,          U,  _),  JSON) :-
+    JSON = _{severity: Sev, type: descarga_masiva,           payload: _{user: U}}.
+alerta_como_json(a(Sev, origen_sospechoso,        U,  IP), JSON) :-
+    JSON = _{severity: Sev, type: origen_sospechoso,         payload: _{user: U, ip: IP}}.
+alerta_como_json(a(Sev, horario_atipico,          U,  Ts), JSON) :-
+    JSON = _{severity: Sev, type: horario_atipico,           payload: _{user: U, access_time: Ts}}.
 
 % GET /api/timeline?user=XXX
 responder_linea_temporal(Request) :-

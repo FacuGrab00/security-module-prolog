@@ -6,20 +6,20 @@
 % Condición: 5 o más intentos fallidos de login desde la misma IP al mismo usuario.
 % La IP no debe pertenecer a la lista de confianza.
 ataque_fuerza_bruta(Usuario, IP) :-
-    \+ ip_confiable(IP),
     setof(T, log_entrada(T, Usuario, IP, login, fallo), Tiempos),
     length(Tiempos, N),
-    N >= 5.
+    N >= 5,
+    \+ ip_confiable(IP).
 
 % REGLA 2 — Ataque distribuido de fuerza bruta
 % Condición: misma IP intenta login con 3 o más usuarios distintos.
 % El operador ^ en setof declara T como variable existencial (no se incluye
 % en la clave de agrupación).
 ataque_masivo_ip(IP) :-
-    \+ ip_confiable(IP),
     setof(U, T^log_entrada(T, U, IP, login, fallo), Usuarios),
     length(Usuarios, N),
-    N >= 3.
+    N >= 3,
+    \+ ip_confiable(IP).
 
 % REGLA 3 — Acceso fuera del horario laboral por administrador
 % Condición: usuario con rol administrador realiza login exitoso fuera de
@@ -53,6 +53,8 @@ login_cuenta_servicio(Usuario) :-
 actividad_red_dispersa(Usuario, CantSubredes) :-
     aggregate_all(max(T0), log_entrada(T0, _, _, _, _), TsReciente),
     VentanaDesde is TsReciente - 3600,
+    setof(U, T1^IP1^A1^R1^(log_entrada(T1, U, IP1, A1, R1), T1 >= VentanaDesde), Candidatos),
+    member(Usuario, Candidatos),
     findall(Subred,
         (log_entrada(T, Usuario, IP, _, _),
          T >= VentanaDesde,
@@ -72,7 +74,7 @@ intento_escalada(Usuario) :-
 % 10 o más descargas exitosas del mismo usuario pueden indicar extracción
 % masiva de información.
 descarga_masiva(Usuario) :-
-    findall(T, log_entrada(T, Usuario, _, descarga, exito), Ts),
+    setof(T, IP^log_entrada(T, Usuario, IP, descarga, exito), Ts),
     length(Ts, N),
     N >= 10.
 
@@ -99,8 +101,8 @@ origen_sospechoso(Usuario, IP) :-
 % El motor infiere que la hora es inusual si el usuario NO tiene historial
 % de accesos previos en esa franja horaria. Usa negación por falla (\+).
 horario_atipico(Usuario, Timestamp) :-
-    extraer_hora_dia(Timestamp, HoraActual),
     log_entrada(Timestamp, Usuario, _, login, exito),
+    extraer_hora_dia(Timestamp, HoraActual),
     findall(H,
         (log_entrada(T2, Usuario, _, login, exito),
          T2 \= Timestamp,
@@ -113,8 +115,8 @@ horario_atipico(Usuario, Timestamp) :-
 % Detecta accesos de usuarios que no tienen rol definido en la base de hechos.
 % La negación por falla (\+ rol_usuario(U, _)) es el núcleo de esta regla.
 usuario_desconocido(Usuario, IP) :-
-    \+ rol_usuario(Usuario, _),
-    setof(_, T^log_entrada(T, Usuario, IP, login, fallo), _).
+    setof(_, T^log_entrada(T, Usuario, IP, login, fallo), _),
+    \+ rol_usuario(Usuario, _).
 
 % REGLA 13 — Sesión simultánea desde dos IPs distintas
 % Detecta cuando el mismo usuario tiene logins exitosos desde dos IPs

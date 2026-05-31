@@ -102,6 +102,8 @@ insertar_fila(fila(TsAtom, Usuario, IP, AccionAtom, ResultAtom)) :-
 
 % --- Predicados de validación ------------------------------------------------
 
+validar_timestamp(Ts) :-
+    integer(Ts), !, Ts > 0.
 validar_timestamp(TsAtom) :-
     atom_number(TsAtom, Ts),
     integer(Ts),
