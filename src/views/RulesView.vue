@@ -2,7 +2,6 @@
   <div class="space-y-6">
     <AppHeader
       title="Base de Conocimiento"
-      subtitle="13 reglas lógicas Prolog para identificación de comportamientos anómalos — audit_engine.pl"
     />
 
     <div class="px-3 sm:px-6 pb-6 space-y-4">
@@ -12,57 +11,11 @@
       </div>
 
       <!-- Filtro por categoría -->
-      <!-- Mobile: select -->
-      <AppSelect
-        class="sm:hidden"
-        :model-value="filterCat ?? 'Todas'"
-        :options="[{ value: 'Todas', label: 'Todas las categorías' }, ...categories.map(c => ({ value: c, label: c }))]"
-        @update:model-value="v => filterCat = v === 'Todas' ? null : v"
-      />
-      <!-- Desktop: botones -->
-      <div class="hidden sm:flex flex-wrap gap-2">
-        <button
-          v-for="cat in ['Todas', ...categories]"
-          :key="cat"
-          @click="filterCat = cat === 'Todas' ? null : cat"
-          class="text-xs px-3 py-1.5 rounded-lg border transition-colors"
-          :class="(cat === 'Todas' && !filterCat) || filterCat === cat
-            ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-400'
-            : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'"
-        >{{ cat }}</button>
-      </div>
+      <FilterTabs v-model="filterCat" :options="categories" all-label="Todas" />
 
       <!-- Reglas -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
-          v-for="rule in filteredRules"
-          :key="rule.id"
-          class="bg-slate-800/50 border rounded-xl overflow-hidden transition-all"
-          :class="rule.triggered > 0 ? 'border-yellow-500/30' : 'border-slate-700'"
-        >
-          <!-- Header -->
-          <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-800/80">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="text-xs font-mono text-slate-500 flex-shrink-0">{{ rule.id }}</span>
-              <span class="text-sm font-mono font-semibold text-white truncate">{{ rule.name }}</span>
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full">{{ rule.category }}</span>
-              <span
-                v-if="rule.triggered > 0"
-                class="text-xs px-2 py-0.5 bg-slate-700/60 text-slate-400 rounded-full"
-              >
-                {{ rule.triggered }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Body -->
-          <div class="px-4 sm:px-5 py-4">
-            <p class="text-xs text-slate-400 mb-3 leading-relaxed">{{ rule.description }}</p>
-            <PrologCode :code="rule.code" />
-          </div>
-        </div>
+        <RuleCard v-for="rule in filteredRules" :key="rule.id" :rule="rule" />
       </div>
     </div>
   </div>
@@ -72,9 +25,9 @@
 import { ref, computed } from 'vue'
 import { BookOpen, Tag, Zap } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
-import PrologCode from '../components/shared/PrologCode.vue'
+import RuleCard from '../components/shared/RuleCard.vue'
 import StatCard from '../components/shared/StatCard.vue'
-import AppSelect from '../components/shared/AppSelect.vue'
+import FilterTabs from '../components/shared/FilterTabs.vue'
 import { prologRulesDefinitions } from '../mock/data'
 import { useAlertsStore } from '../stores/alerts'
 import type { PrologRule } from '../types'

@@ -47,33 +47,21 @@
             <!-- Acciones -->
             <div class="flex flex-wrap items-center gap-2">
               <template v-if="alert.status !== 'dismissed'">
-                <button
-                  v-if="alertIP(alert)"
-                  @click="emit('block-ip', alertIP(alert)!, alert)"
-                  class="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs rounded-md transition-colors"
-                >
-                  <Ban class="w-3 h-3" />Bloquear IP
-                </button>
-                <button
-                  @click="store.dismissAlert(alert.id)"
-                  class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-md transition-colors"
-                >
-                  <X class="w-3 h-3" />Descartar
-                </button>
+                <AppButton v-if="alertIP(alert)" variant="red" size="sm"
+                  @click="emit('block-ip', alertIP(alert)!, alert)">
+                  <template #icon><Ban class="w-3 h-3" /></template>Bloquear IP
+                </AppButton>
+                <AppButton variant="secondary" size="sm" @click="store.dismissAlert(alert.id)">
+                  <template #icon><X class="w-3 h-3" /></template>Descartar
+                </AppButton>
               </template>
-              <button
-                v-if="alert.status === 'dismissed'"
-                @click="store.restoreAlert(alert.id)"
-                class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs rounded-md transition-colors"
-              >
-                <RotateCcw class="w-3 h-3" />Restaurar
-              </button>
-              <button
-                @click="selected = alert"
-                class="flex items-center gap-1.5 px-2.5 py-1 text-slate-500 hover:text-cyan-400 text-xs rounded-md transition-colors sm:ml-auto"
-              >
-                <Info class="w-3 h-3" />Ver detalles
-              </button>
+              <AppButton v-if="alert.status === 'dismissed'" variant="emerald" size="sm"
+                @click="store.restoreAlert(alert.id)">
+                <template #icon><RotateCcw class="w-3 h-3" /></template>Restaurar
+              </AppButton>
+              <AppButton variant="ghost" size="sm" class="sm:ml-auto" @click="selected = alert">
+                <template #icon><Info class="w-3 h-3" /></template>Ver detalles
+              </AppButton>
             </div>
           </div>
         </div>
@@ -166,10 +154,7 @@
 
         <!-- Footer -->
         <div class="flex justify-end px-4 sm:px-6 py-3 border-t border-slate-700 flex-shrink-0">
-          <button
-            @click="selected = null"
-            class="px-4 py-2 text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors"
-          >Cerrar</button>
+          <AppButton @click="selected = null">Cerrar</AppButton>
         </div>
       </div>
     </div>
@@ -181,6 +166,7 @@
 import { ref, computed, type Component } from 'vue'
 import { AlertTriangle, User, Globe, Hash, Ban, X, Info, Clock, CheckCircle, Tag, Shield, Calendar, ScrollText, RotateCcw } from '@lucide/vue'
 import AppSelect from '../shared/AppSelect.vue'
+import AppButton from '../shared/AppButton.vue'
 import { useAppStore } from '../../stores/app'
 import { useAlertsStore } from '../../stores/alerts'
 import type { SecurityAlert } from '../../types'

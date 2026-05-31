@@ -1,51 +1,35 @@
 <template>
   <div class="space-y-6">
     <AppHeader
-      title="Generación de Reporte"
-      subtitle="Informe de hallazgos críticos del análisis Prolog — exportable como PDF o texto plano"
+        title="Generación de Reporte"
     />
 
     <div class="px-3 sm:px-6 pb-6 space-y-6">
       <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-4 border-b border-slate-700">
+        <div class="report-toolbar">
           <div class="flex items-center gap-2">
-            <FileText class="w-4 h-4 text-cyan-400 flex-shrink-0" />
+            <FileText class="w-4 h-4 text-cyan-400 flex-shrink-0"/>
             <h2 class="text-white font-semibold text-sm">Reporte de Auditoría de Seguridad</h2>
           </div>
 
           <div class="flex gap-2 flex-wrap">
-            <button
-              @click="loadReport"
-              :disabled="isGenerating"
-              class="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-300 text-sm rounded-lg transition-colors"
-            >
-              <RefreshCw class="w-4 h-4" :class="isGenerating ? 'animate-spin' : ''" />
+            <AppButton :loading="isGenerating" @click="loadReport">
+              <template #icon><RefreshCw class="w-4 h-4" /></template>
               Regenerar
-            </button>
-
-            <button
-              @click="downloadReport"
-              :disabled="!hasContent"
-              class="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-300 text-sm rounded-lg transition-colors"
-            >
-              <Download class="w-4 h-4" />
+            </AppButton>
+            <AppButton :disabled="!hasContent" @click="downloadReport">
+              <template #icon><Download class="w-4 h-4" /></template>
               .txt
-            </button>
-
-            <button
-              @click="downloadPDF"
-              :disabled="!hasContent || isExportingPDF"
-              class="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white text-sm rounded-lg transition-colors font-medium"
-            >
-              <div v-if="isExportingPDF" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <FileDown v-else class="w-4 h-4" />
+            </AppButton>
+            <AppButton variant="primary" :loading="isExportingPDF" :disabled="!hasContent" @click="downloadPDF">
+              <template #icon><FileDown class="w-4 h-4" /></template>
               {{ isExportingPDF ? 'Generando...' : 'Descargar PDF' }}
-            </button>
+            </AppButton>
           </div>
         </div>
 
         <div class="p-5">
-          <pre class="text-xs text-slate-300 font-mono leading-relaxed whitespace-pre-wrap bg-slate-900/60 border border-slate-700 rounded-xl p-5 overflow-x-auto max-h-[600px]">{{ reportContent }}</pre>
+          <pre class="report-content">{{ reportContent }}</pre>
         </div>
       </div>
     </div>
@@ -53,22 +37,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { jsPDF } from 'jspdf'
-import { FileText, Download, RefreshCw, FileDown } from '@lucide/vue'
+import {ref, computed, onMounted} from 'vue'
+import {jsPDF} from 'jspdf'
+import {FileText, Download, RefreshCw, FileDown} from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
-import { useAppStore } from '../stores/app'
+import AppButton from '../components/shared/AppButton.vue'
+import {useAppStore} from '../stores/app'
 
-const store          = useAppStore()
-const reportContent  = ref('Cargando reporte desde el motor Prolog...')
-const isGenerating   = ref(false)
+const store = useAppStore()
+const reportContent = ref('Cargando reporte desde el motor Prolog...')
+const isGenerating = ref(false)
 const isExportingPDF = ref(false)
 
 const hasContent = computed(() =>
-  reportContent.value.length > 0 &&
-  !reportContent.value.startsWith('(') &&
-  !reportContent.value.startsWith('⚠') &&
-  !reportContent.value.startsWith('Cargando')
+    reportContent.value.length > 0 &&
+    !reportContent.value.startsWith('(') &&
+    !reportContent.value.startsWith('⚠') &&
+    !reportContent.value.startsWith('Cargando')
 )
 
 // ─── Cargar desde Prolog ──────────────────────────────────────────────────────
@@ -96,10 +81,10 @@ onMounted(loadReport)
 // ─── Descarga TXT ─────────────────────────────────────────────────────────────
 
 function downloadReport() {
-  const blob = new Blob([reportContent.value], { type: 'text/plain;charset=utf-8' })
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href     = url
+  const blob = new Blob([reportContent.value], {type: 'text/plain;charset=utf-8'})
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
   a.download = `reporte_auditoria_${today()}.txt`
   a.click()
   URL.revokeObjectURL(url)
@@ -107,25 +92,45 @@ function downloadReport() {
 
 // ─── Descarga PDF — diseño institucional B/N ─────────────────────────────────
 
-interface AlertEntry { header: string; details: string[] }
-interface AlertSections { critical: AlertEntry[]; high: AlertEntry[]; lowmed: AlertEntry[] }
+interface AlertEntry {
+  header: string;
+  details: string[]
+}
+
+interface AlertSections {
+  critical: AlertEntry[];
+  high: AlertEntry[];
+  lowmed: AlertEntry[]
+}
 
 function parseAlertSections(text: string): AlertSections {
-  const out: AlertSections = { critical: [], high: [], lowmed: [] }
+  const out: AlertSections = {critical: [], high: [], lowmed: []}
   let section: keyof AlertSections | null = null
-  let entry:   AlertEntry | null          = null
+  let entry: AlertEntry | null = null
 
   for (const raw of text.split('\n')) {
     const t = raw.trim()
 
-    if (t.includes('ALERTAS CRÍTICAS'))                          { section = 'critical'; entry = null; continue }
-    if (t.includes('ALERTAS ALTA'))                              { section = 'high';     entry = null; continue }
-    if (t.includes('ALERTAS MEDIA') || t.includes('ALERTAS BAJA')) { section = 'lowmed';  entry = null; continue }
+    if (t.includes('ALERTAS CRÍTICAS')) {
+      section = 'critical';
+      entry = null;
+      continue
+    }
+    if (t.includes('ALERTAS ALTA')) {
+      section = 'high';
+      entry = null;
+      continue
+    }
+    if (t.includes('ALERTAS MEDIA') || t.includes('ALERTAS BAJA')) {
+      section = 'lowmed';
+      entry = null;
+      continue
+    }
     if (!section) continue
 
     if (t.match(/^\[(CRITICO|ALTO|BAJO)\]/)) {
       const header = t.replace(/^\[(?:CRITICO|ALTO|BAJO)\]\s*/, '').replace(/:$/, '')
-      entry = { header, details: [] }
+      entry = {header, details: []}
       out[section].push(entry)
     } else if (entry && raw.startsWith('  ') && t) {
       entry.details.push(t)
@@ -139,26 +144,31 @@ async function downloadPDF() {
   isExportingPDF.value = true
 
   try {
-    const doc  = new jsPDF({ unit: 'mm', format: 'a4' })
-    const PW   = doc.internal.pageSize.getWidth()
-    const PH   = doc.internal.pageSize.getHeight()
-    const ML   = 20
-    const MR   = 20
-    const MB   = 20
-    const CW   = PW - ML - MR
+    const doc = new jsPDF({unit: 'mm', format: 'a4'})
+    const PW = doc.internal.pageSize.getWidth()
+    const PH = doc.internal.pageSize.getHeight()
+    const ML = 20
+    const MR = 20
+    const MB = 20
+    const CW = PW - ML - MR
 
     let y = 0
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     function col(r: number, g: number, b: number) {
-      return { text: () => doc.setTextColor(r, g, b), draw: () => doc.setDrawColor(r, g, b), fill: () => doc.setFillColor(r, g, b) }
+      return {
+        text: () => doc.setTextColor(r, g, b),
+        draw: () => doc.setDrawColor(r, g, b),
+        fill: () => doc.setFillColor(r, g, b)
+      }
     }
-    const BLACK      = col(0,   0,   0)
-    const DARK       = col(30,  30,  30)
-    const MIDGRAY    = col(90,  90,  90)
-    const LIGHTGRAY  = col(150, 150, 150)
-    const PALE       = col(210, 210, 210)
+
+    const BLACK = col(0, 0, 0)
+    const DARK = col(30, 30, 30)
+    const MIDGRAY = col(90, 90, 90)
+    const LIGHTGRAY = col(150, 150, 150)
+    const PALE = col(210, 210, 210)
 
     function checkY(needed = 10) {
       if (y + needed > PH - MB) addPage()
@@ -222,13 +232,13 @@ async function downloadPDF() {
 
     // Fila de metadatos
     const dateMatch = reportContent.value.match(/Generado:\s*(.+)/)
-    const genDate   = dateMatch ? dateMatch[1].trim() : new Date().toLocaleString('es-AR')
+    const genDate = dateMatch ? dateMatch[1].trim() : new Date().toLocaleString('es-AR')
 
     MIDGRAY.text()
     doc.setFontSize(8)
     doc.setFont('helvetica', 'normal')
     doc.text(`Fecha de emisión: ${genDate}`, ML, y)
-    doc.text('Clasificación: Documento Técnico Interno', PW - MR, y, { align: 'right' })
+    doc.text('Clasificación: Documento Técnico Interno', PW - MR, y, {align: 'right'})
 
     y += 4
     PALE.draw()
@@ -239,13 +249,13 @@ async function downloadPDF() {
 
     // ── SECCIÓN 1 — RESUMEN EJECUTIVO ────────────────────────────────────────
 
-    const evMatch   = reportContent.value.match(/Eventos procesados\s*:\s*(\d+)/)
-    const okMatch   = reportContent.value.match(/Accesos exitosos\s*:\s*(\d+)/)
+    const evMatch = reportContent.value.match(/Eventos procesados\s*:\s*(\d+)/)
+    const okMatch = reportContent.value.match(/Accesos exitosos\s*:\s*(\d+)/)
     const failMatch = reportContent.value.match(/Accesos fallidos\s*:\s*(\d+)/)
-    const totalEvs  = evMatch   ? parseInt(evMatch[1])   : 0
-    const totalOk   = okMatch   ? parseInt(okMatch[1])   : 0
+    const totalEvs = evMatch ? parseInt(evMatch[1]) : 0
+    const totalOk = okMatch ? parseInt(okMatch[1]) : 0
     const totalFail = failMatch ? parseInt(failMatch[1]) : 0
-    const rate      = totalEvs > 0 ? Math.round(totalOk / totalEvs * 100) : 0
+    const rate = totalEvs > 0 ? Math.round(totalOk / totalEvs * 100) : 0
     const uniqUsers = store.prologStats?.unique_users ?? 0
 
     BLACK.text()
@@ -277,11 +287,11 @@ async function downloadPDF() {
       doc.text(String(value), x + 40, yy)
     }
 
-    stat('Eventos analizados:',  totalEvs,   c1, y + 2)
-    stat('Usuarios únicos:',     uniqUsers,  c2, y + 2)
-    stat('Accesos exitosos:',    totalOk,    c1, y + 8)
-    stat('Tasa de éxito:',       `${rate}%`, c2, y + 8)
-    stat('Accesos fallidos:',    totalFail,  c1, y + 14)
+    stat('Eventos analizados:', totalEvs, c1, y + 2)
+    stat('Usuarios únicos:', uniqUsers, c2, y + 2)
+    stat('Accesos exitosos:', totalOk, c1, y + 8)
+    stat('Tasa de éxito:', `${rate}%`, c2, y + 8)
+    stat('Accesos fallidos:', totalFail, c1, y + 14)
 
     y += 28
 
@@ -290,12 +300,12 @@ async function downloadPDF() {
     const alertSections = parseAlertSections(reportContent.value)
 
     const defs = [
-      { key: 'critical' as const, num: 2, title: 'HALLAZGOS DE MÁXIMA SEVERIDAD'  },
-      { key: 'high'     as const, num: 3, title: 'HALLAZGOS DE ALTA SEVERIDAD'    },
-      { key: 'lowmed'   as const, num: 4, title: 'HALLAZGOS DE MEDIA / BAJA SEVERIDAD' },
+      {key: 'critical' as const, num: 2, title: 'HALLAZGOS DE MÁXIMA SEVERIDAD'},
+      {key: 'high' as const, num: 3, title: 'HALLAZGOS DE ALTA SEVERIDAD'},
+      {key: 'lowmed' as const, num: 4, title: 'HALLAZGOS DE MEDIA / BAJA SEVERIDAD'},
     ]
 
-    for (const { key, num, title } of defs) {
+    for (const {key, num, title} of defs) {
       const entries = alertSections[key]
 
       checkY(20)
@@ -330,7 +340,7 @@ async function downloadPDF() {
         doc.setFontSize(9)
         doc.setFont('helvetica', 'bold')
         const subTitle = `${num}.${idx + 1}  ${entry.header.toUpperCase()}`
-        const wrapped  = doc.splitTextToSize(subTitle, CW - 4)
+        const wrapped = doc.splitTextToSize(subTitle, CW - 4)
         doc.text(wrapped, ML + 4, y)
         y += wrapped.length * 5.5
 
@@ -385,7 +395,7 @@ async function downloadPDF() {
       doc.text('UNCAUS  ·  Inteligencia Artificial 2026  ·  Sistema de Auditoría de Seguridad', ML, PH - 10)
       DARK.text()
       doc.setFont('helvetica', 'bold')
-      doc.text(`Página ${p} de ${total}`, PW - MR, PH - 10, { align: 'right' })
+      doc.text(`Página ${p} de ${total}`, PW - MR, PH - 10, {align: 'right'})
     }
 
     doc.save(`reporte_auditoria_${today()}.pdf`)
@@ -400,3 +410,13 @@ function today() {
   return new Date().toISOString().slice(0, 10)
 }
 </script>
+
+<style scoped>
+.report-toolbar {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-4 border-b border-slate-700;
+}
+
+.report-content {
+  @apply text-xs text-slate-300 font-mono leading-relaxed whitespace-pre-wrap bg-slate-900/60 border border-slate-700 rounded-xl p-5 overflow-x-auto max-h-[600px];
+}
+</style>
