@@ -25,6 +25,10 @@ interface PayloadAccesoTrasIntentos { user: string; ip: string }
 interface PayloadLoginServicio      { user: string }
 interface PayloadEscalada           { user: string }
 interface PayloadUsuarioDesconocido { user: string; ip: string }
+interface PayloadRedDispersa        { user: string; subnet_count: number }
+interface PayloadDescargaMasiva     { user: string }
+interface PayloadOrigenSospechoso   { user: string; ip: string }
+interface PayloadHorarioAtipico     { user: string; access_time: number }
 
 interface BaseAlert {
   id:          string
@@ -47,6 +51,10 @@ export type SecurityAlert =
   | BaseAlert & { type: 'login_cuenta_servicio';    payload: PayloadLoginServicio }
   | BaseAlert & { type: 'intento_escalada';         payload: PayloadEscalada }
   | BaseAlert & { type: 'usuario_desconocido';      payload: PayloadUsuarioDesconocido }
+  | BaseAlert & { type: 'actividad_red_dispersa';  payload: PayloadRedDispersa }
+  | BaseAlert & { type: 'descarga_masiva';          payload: PayloadDescargaMasiva }
+  | BaseAlert & { type: 'origen_sospechoso';        payload: PayloadOrigenSospechoso }
+  | BaseAlert & { type: 'horario_atipico';          payload: PayloadHorarioAtipico }
 
 export interface BlockedIP {
   ip:         string

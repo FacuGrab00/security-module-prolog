@@ -5,7 +5,7 @@
       <div class="flex items-center gap-2">
         <AlertTriangle class="w-4 h-4 text-red-400" />
         <h2 class="text-white font-semibold text-sm">Alertas de Seguridad</h2>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
+        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-300 border border-slate-500/30">
           {{ store.activeAlerts.length }} activas
         </span>
       </div>
@@ -18,47 +18,53 @@
     </div>
 
     <!-- Lista -->
-    <div class="flex-1 overflow-y-auto divide-y divide-slate-700/50 max-h-[520px]">
+    <div class="flex-1 overflow-y-auto max-h-[520px] p-3 space-y-2">
       <div
         v-for="alert in filteredAlerts"
         :key="alert.id"
-        class="px-5 py-4 hover:bg-slate-700/30 transition-colors"
+        class="rounded-lg border bg-slate-900/50 overflow-hidden"
+        :class="borderColor[alert.severity]"
       >
-        <!-- Top row -->
-        <div class="flex items-start justify-between gap-2 mb-2">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-slate-700 border border-slate-600 text-slate-400">{{ alert.id }}</span>
-            <SeverityBadge :severity="alert.severity" />
-            <StatusBadge :status="alert.status" />
+        <!-- Franja izquierda + contenido -->
+        <div class="flex">
+          <!-- Acento lateral -->
+          <div class="w-1 flex-shrink-0 rounded-l-lg" :class="accentColor[alert.severity]" />
+
+          <div class="flex-1 px-4 py-3 min-w-0">
+            <!-- Título con etiqueta de severidad inline -->
+            <div class="flex items-baseline justify-between gap-2 mb-1">
+              <p class="text-sm font-semibold text-white leading-snug">
+                <span class="text-xs font-bold uppercase tracking-wide mr-1.5" :class="severityTextColor[alert.severity]">{{ severityLabel[alert.severity] }}</span>{{ alert.label }}
+              </p>
+              <span class="text-xs text-slate-500 whitespace-nowrap flex-shrink-0">{{ alert.timestamp }}</span>
+            </div>
+
+            <!-- Descripción -->
+            <p class="text-xs text-slate-400 leading-relaxed mb-3">{{ alert.description }}</p>
+
+            <!-- Acciones -->
+            <div class="flex items-center gap-2">
+              <button
+                v-if="alertIP(alert)"
+                @click="emit('block-ip', alertIP(alert)!, alert)"
+                class="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs rounded-md transition-colors"
+              >
+                <Ban class="w-3 h-3" />Bloquear IP
+              </button>
+              <button
+                @click="store.dismissAlert(alert.id)"
+                class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-md transition-colors"
+              >
+                <X class="w-3 h-3" />Descartar
+              </button>
+              <button
+                @click="selected = alert"
+                class="flex items-center gap-1.5 px-2.5 py-1 text-slate-500 hover:text-cyan-400 text-xs rounded-md transition-colors ml-auto"
+              >
+                <Info class="w-3 h-3" />Ver detalles
+              </button>
+            </div>
           </div>
-          <span class="text-xs text-slate-500 whitespace-nowrap">{{ alert.timestamp }}</span>
-        </div>
-
-        <!-- Tipo y descripción -->
-        <p class="text-sm font-medium text-white mb-1">{{ alert.label }}</p>
-        <p class="text-xs text-slate-400 mb-3 leading-relaxed">{{ alert.description }}</p>
-
-        <!-- Acciones -->
-        <div class="flex items-center gap-2">
-          <button
-            v-if="alertIP(alert)"
-            @click="emit('block-ip', alertIP(alert)!)"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 text-xs rounded-lg transition-colors"
-          >
-            <Ban class="w-3 h-3" />Bloquear IP
-          </button>
-          <button
-            @click="store.dismissAlert(alert.id)"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-lg transition-colors"
-          >
-            <X class="w-3 h-3" />Descartar
-          </button>
-          <button
-            @click="selected = alert"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-lg transition-colors ml-auto"
-          >
-            <Info class="w-3 h-3" />Detalles
-          </button>
         </div>
       </div>
 
@@ -155,10 +161,35 @@ import { alertIP } from '../../utils/prologMapper'
 import SeverityBadge from '../shared/SeverityBadge.vue'
 import StatusBadge from '../shared/StatusBadge.vue'
 
-const emit  = defineEmits<{ 'block-ip': [ip: string] }>()
+const emit  = defineEmits<{ 'block-ip': [ip: string, alert: SecurityAlert] }>()
 const store = useAlertsStore()
 const filter   = ref<string>('all')
 const selected = ref<SecurityAlert | null>(null)
+
+const borderColor: Record<string, string> = {
+  critical: 'border-red-500/30',
+  high:     'border-orange-500/30',
+  medium:   'border-yellow-500/30',
+  low:      'border-blue-500/30',
+}
+const accentColor: Record<string, string> = {
+  critical: 'bg-red-500',
+  high:     'bg-orange-500',
+  medium:   'bg-yellow-500',
+  low:      'bg-blue-500',
+}
+const severityTextColor: Record<string, string> = {
+  critical: 'text-red-400',
+  high:     'text-orange-400',
+  medium:   'text-yellow-400',
+  low:      'text-blue-400',
+}
+const severityLabel: Record<string, string> = {
+  critical: 'Crítica',
+  high:     'Alta',
+  medium:   'Media',
+  low:      'Baja',
+}
 
 type Field = { label: string; value: string; icon: Component; mono?: boolean }
 
@@ -204,6 +235,25 @@ function alertFields(a: SecurityAlert): Field[] {
       return [
         { label: 'Usuario', value: a.payload.user, icon: User,  mono: true },
         { label: 'IP',      value: a.payload.ip,   icon: Globe, mono: true },
+      ]
+    case 'actividad_red_dispersa':
+      return [
+        { label: 'Usuario',   value: a.payload.user,                     icon: User, mono: true  },
+        { label: 'Subredes',  value: String(a.payload.subnet_count),      icon: Globe, mono: false },
+      ]
+    case 'descarga_masiva':
+      return [
+        { label: 'Usuario', value: a.payload.user, icon: User, mono: true },
+      ]
+    case 'origen_sospechoso':
+      return [
+        { label: 'Usuario',   value: a.payload.user, icon: User,  mono: true },
+        { label: 'IP origen', value: a.payload.ip,   icon: Globe, mono: true },
+      ]
+    case 'horario_atipico':
+      return [
+        { label: 'Usuario',        value: a.payload.user, icon: User, mono: true },
+        { label: 'Hora de acceso', value: new Date(a.payload.access_time * 1000).toLocaleString('es-AR'), icon: Calendar, mono: false },
       ]
   }
 }

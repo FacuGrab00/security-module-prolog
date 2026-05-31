@@ -84,6 +84,42 @@ export const RULE_CODE: Record<string, string> = {
     'usuario_desconocido(Usuario, IP) :-\n' +
     '    \\+ rol_usuario(Usuario, _),\n' +
     '    setof(_, T^log_entrada(T, Usuario, IP, login, fallo), _).',
+
+  actividad_red_dispersa:
+    'actividad_red_dispersa(Usuario, CantSubredes) :-\n' +
+    '    aggregate_all(max(T0), log_entrada(T0, _, _, _, _), TsReciente),\n' +
+    '    VentanaDesde is TsReciente - 3600,\n' +
+    '    findall(Subred,\n' +
+    '        (log_entrada(T, Usuario, IP, _, _),\n' +
+    '         T >= VentanaDesde,\n' +
+    '         extraer_subred(IP, Subred)),\n' +
+    '        Subredes),\n' +
+    '    sort(Subredes, SubredesUnicas),\n' +
+    '    length(SubredesUnicas, CantSubredes),\n' +
+    '    CantSubredes > 3.',
+
+  descarga_masiva:
+    'descarga_masiva(Usuario) :-\n' +
+    '    findall(T, log_entrada(T, Usuario, _, descarga, exito), Ts),\n' +
+    '    length(Ts, N),\n' +
+    '    N >= 10.',
+
+  origen_sospechoso:
+    'origen_sospechoso(Usuario, IP) :-\n' +
+    '    log_entrada(_, Usuario, IP, login, exito),\n' +
+    '    ip_prohibida(IP, _).',
+
+  horario_atipico:
+    'horario_atipico(Usuario, Timestamp) :-\n' +
+    '    extraer_hora_dia(Timestamp, HoraActual),\n' +
+    '    log_entrada(Timestamp, Usuario, _, login, exito),\n' +
+    '    findall(H,\n' +
+    '        (log_entrada(T2, Usuario, _, login, exito),\n' +
+    '         T2 \\= Timestamp,\n' +
+    '         extraer_hora_dia(T2, H)),\n' +
+    '        HistorialHoras),\n' +
+    '    HistorialHoras \\= [],\n' +
+    '    \\+ member(HoraActual, HistorialHoras).',
 }
 
 export const TYPE_LABEL: Record<string, string> = {
@@ -96,6 +132,10 @@ export const TYPE_LABEL: Record<string, string> = {
   login_cuenta_servicio:    'Login Cuenta de Servicio',
   intento_escalada:         'Intento de Escalada',
   usuario_desconocido:      'Usuario No Registrado',
+  actividad_red_dispersa:  'Actividad en Múltiples Subredes',
+  descarga_masiva:          'Descarga Masiva de Datos',
+  origen_sospechoso:        'Origen Geográfico Sospechoso',
+  horario_atipico:          'Acceso en Horario Atípico',
 }
 
 // ─── Funciones de mapeo ───────────────────────────────────────────────────────
@@ -129,6 +169,14 @@ function buildDescription(type: string, p: Record<string, unknown>): string {
       return `Usuario normal "${u}" ejecutó una acción reservada para administradores.`
     case 'usuario_desconocido':
       return `Usuario no registrado "${u}" intentó acceder desde IP ${ip}.`
+    case 'actividad_red_dispersa':
+      return `Usuario "${u}" operó desde ${p.subnet_count} subredes distintas en la última hora (posible movimiento lateral).`
+    case 'descarga_masiva':
+      return `Usuario "${u}" realizó 10 o más descargas exitosas (posible exfiltración de datos).`
+    case 'origen_sospechoso':
+      return `Usuario "${u}" accedió exitosamente desde IP ${ip}, que figura en la lista negra.`
+    case 'horario_atipico':
+      return `Usuario "${u}" accedió a las ${new Date(Number(p.access_time) * 1000).toLocaleString('es-AR')}, fuera de su horario habitual.`
     default:
       return `Anomalía detectada — tipo: ${type}`
   }
@@ -141,6 +189,7 @@ export function alertIP(alert: SecurityAlert): string | null {
     case 'acceso_ip_prohibida':
     case 'acceso_tras_intentos':
     case 'usuario_desconocido':
+    case 'origen_sospechoso':
       return alert.payload.ip
     default:
       return null
