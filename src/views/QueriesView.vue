@@ -93,7 +93,6 @@
         <div class="flex items-center gap-2 px-4 sm:px-5 py-4 border-b border-slate-700">
           <Terminal class="w-4 h-4 text-cyan-400 flex-shrink-0" />
           <h3 class="text-white font-semibold text-sm">Consulta Libre</h3>
-          <span class="text-xs text-slate-500">(modo simulado)</span>
         </div>
         <div class="px-4 sm:px-5 py-4 space-y-3">
           <div class="flex flex-col sm:flex-row gap-2">
@@ -186,25 +185,20 @@ async function runQuery(id: string) {
 async function runFreeQuery() {
   if (!freeQuery.value.trim()) return
   freeLoading.value = true
-  const q = freeQuery.value.trim().toLowerCase()
   try {
-    let result: string
-    if (q.includes('multiples_subredes') || q.includes('subredes')) {
-      result = await store.runQuery('multiples_subredes', { min: '2' })
-    } else if (q.includes('ips_comprometidas') || q.includes('distribucion')) {
-      result = await store.runQuery('ips_comprometidas')
-    } else if (q.includes('resumen')) {
-      const match = q.match(/resumen[_(](\w+)/)
-      result = await store.runQuery('resumen', { user: match?.[1] ?? 'admin_ti' })
-    } else if (q.includes('historial') || q.includes('timeline')) {
-      const match = q.match(/historial[_(](\w+)/)
-      result = await store.runQuery('historial_usuario', { user: match?.[1] ?? 'admin_ti' })
+    const body = await store.runFreeQuery(freeQuery.value.trim())
+    if (body.ok) {
+      const solutions = body.solutions ?? 0
+      const label = solutions === 1 ? '1 solución' : `${solutions} soluciones`
+      freeResult.value = {
+        ok:   true,
+        text: solutions === 0 ? 'false.' : `${body.result}\n\n% ${label}`,
+      }
     } else {
-      result = 'Consulta no reconocida. Tipos disponibles: multiples_subredes, ips_comprometidas, resumen(<usuario>), historial(<usuario>)'
+      freeResult.value = { ok: false, text: String(body.error ?? 'Error desconocido') }
     }
-    freeResult.value = { ok: !result.startsWith('Error') && result !== 'false.', text: result || 'false.' }
   } catch {
-    freeResult.value = { ok: false, text: 'Error: motor Prolog no disponible. Iniciá el servidor con: swipl security_engine.pl' }
+    freeResult.value = { ok: false, text: 'Error: motor Prolog no disponible. Iniciá el servidor con: swipl server.pl' }
   } finally {
     freeLoading.value = false
   }

@@ -11,8 +11,8 @@ import type { AuditQuery, PrologRule } from '../types'
 export const auditQueries: AuditQuery[] = [
   {
     id: 'Q1',
-    title: 'Usuarios activos en más de N subredes distintas',
-    description: 'Lista todos los usuarios que generaron eventos en más de N subredes distintas.',
+    title: 'Usuarios con actividad en múltiples subredes',
+    description: 'Muestra qué usuarios estuvieron activos en más de N subredes distintas, permitiendo detectar movimiento lateral o reconocimiento de red.',
     category: 'Análisis de Red',
     prolog: `consulta_usuarios_red_dispersa(MinSubredes, Resultados) :-
     findall(U, log_entrada(_, U, _, _, _), UsuariosBrutos),
@@ -25,8 +25,8 @@ export const auditQueries: AuditQuery[] = [
   },
   {
     id: 'Q2',
-    title: 'IPs que realizaron ataque distribuido y lograron acceso',
-    description: 'Detecta IPs que atacaron ≥3 usuarios distintos (ataque_masivo_ip) y además lograron al menos un login exitoso.',
+    title: 'IPs que atacaron múltiples usuarios y lograron acceso',
+    description: 'Identifica IPs que intentaron acceder con 3 o más cuentas distintas y además consiguieron al menos un login exitoso, indicando un ataque distribuido con resultado.',
     category: 'Fuerza Bruta',
     prolog: `consulta_ataques_exitosos(Resultados) :-
     findall(IP-Afectados-Comprometidos,
@@ -40,8 +40,8 @@ export const auditQueries: AuditQuery[] = [
   },
   {
     id: 'Q3',
-    title: 'Informe completo de un usuario (estadísticas + alertas)',
-    description: 'Devuelve total de eventos, fallos, éxitos y lista de alertas activas para un usuario.',
+    title: 'Informe completo de actividad por usuario',
+    description: 'Genera un resumen de la actividad de un usuario: total de eventos registrados, intentos fallidos, accesos exitosos y alertas de seguridad asociadas.',
     category: 'Auditoría',
     prolog: `informe_usuario(Usuario,
              informe(Usuario, Total, Fallos, Exitos, Alertas)) :-
@@ -55,8 +55,8 @@ export const auditQueries: AuditQuery[] = [
   },
   {
     id: 'Q4',
-    title: 'Línea de tiempo cronológica de un usuario',
-    description: 'Reconstruye la secuencia de todos los eventos de un usuario ordenados por tiempo.',
+    title: 'Historial cronológico de eventos por usuario',
+    description: 'Reconstruye la secuencia completa de acciones de un usuario ordenadas en el tiempo, útil para análisis forense o investigación de incidentes.',
     category: 'Forense',
     prolog: `historial_usuario(Usuario, Timeline) :-
     findall(T-IP-Accion-Resultado,
@@ -72,25 +72,27 @@ export const auditQueries: AuditQuery[] = [
 export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   {
     id: 'R01', name: 'ataque_fuerza_bruta/2',
-    description: '5+ intentos fallidos de login desde la misma IP al mismo usuario. Excluye IPs de confianza (\\+ ip_confiable). setof/3 garantiza unicidad de timestamps.',
+    description: 'Detecta cuando se realizan 5 o más intentos fallidos de login sobre el mismo usuario desde una misma IP, lo que indica un ataque de fuerza bruta.',
     category: 'Fuerza Bruta',
     code: `ataque_fuerza_bruta(Usuario, IP) :-
-    \\+ ip_confiable(IP),
     setof(T, log_entrada(T, Usuario, IP, login, fallo), Tiempos),
-    length(Tiempos, N), N >= 5.`,
+    length(Tiempos, N),
+    N >= 5,
+    \\+ ip_confiable(IP).`,
   },
   {
     id: 'R02', name: 'ataque_masivo_ip/1',
-    description: 'Una sola IP que intenta login con 3+ usuarios distintos. T^ declara T como variable existencial en setof para agrupar por IP–Usuario.',
+    description: 'Identifica una IP que intenta acceder con 3 o más cuentas de usuario distintas, señal de un escaneo masivo o ataque distribuido de credenciales.',
     category: 'Fuerza Bruta',
     code: `ataque_masivo_ip(IP) :-
-    \\+ ip_confiable(IP),
     setof(U, T^log_entrada(T, U, IP, login, fallo), Usuarios),
-    length(Usuarios, N), N >= 3.`,
+    length(Usuarios, N),
+    N >= 3,
+    \\+ ip_confiable(IP).`,
   },
   {
     id: 'R03', name: 'acceso_horario_irregular/2',
-    description: 'Login exitoso de un administrador fuera del horario laboral (08:00–20:00). extraer_hora_dia/2 convierte timestamps Unix a hora del día.',
+    description: 'Detecta cuando un administrador inicia sesión fuera del horario laboral permitido (08:00–20:00), lo que puede indicar acceso no autorizado o uso indebido de credenciales.',
     category: 'Horario Laboral',
     code: `acceso_horario_irregular(Usuario, Timestamp) :-
     rol_usuario(Usuario, administrador),
@@ -101,7 +103,7 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R04', name: 'acceso_ip_prohibida/2',
-    description: 'IP en lista negra (ip_prohibida/2) que registró al menos un evento. once/1 corta tras el primer match para evitar duplicados.',
+    description: 'Alerta cuando se detecta actividad desde una IP que se encuentra en la lista negra del sistema, independientemente del tipo de acción realizada.',
     category: 'Lista Negra',
     code: `acceso_ip_prohibida(IP, Motivo) :-
     ip_prohibida(IP, Motivo),
@@ -110,7 +112,7 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R05', name: 'login_cuenta_servicio/1',
-    description: 'Cuenta de servicio (respaldo_bd, monitor_red) realizó un login interactivo — estas cuentas nunca deberían autenticarse de forma interactiva.',
+    description: 'Detecta cuando una cuenta de servicio, como las usadas para backups o monitoreo, realiza un login interactivo. Estas cuentas no deberían autenticarse manualmente.',
     category: 'Privilegios',
     code: `login_cuenta_servicio(Usuario) :-
     rol_usuario(Usuario, servicio),
@@ -118,11 +120,13 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R06', name: 'actividad_red_dispersa/2',
-    description: 'Usuario activo en más de 3 subredes distintas en la última hora. aggregate_all/3 localiza el evento más reciente y define la ventana temporal.',
+    description: 'Identifica usuarios que han tenido actividad en más de 3 subredes distintas dentro de la última hora, comportamiento típico de reconocimiento o movimiento lateral.',
     category: 'Reconocimiento',
     code: `actividad_red_dispersa(Usuario, CantSubredes) :-
     aggregate_all(max(T0), log_entrada(T0, _, _, _, _), TsReciente),
     VentanaDesde is TsReciente - 3600,
+    setof(U, T1^IP1^A1^R1^(log_entrada(T1, U, IP1, A1, R1), T1 >= VentanaDesde), Candidatos),
+    member(Usuario, Candidatos),
     findall(Subred,
         (log_entrada(T, Usuario, IP, _, _),
          T >= VentanaDesde,
@@ -134,7 +138,7 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R07', name: 'intento_escalada/1',
-    description: 'Usuario con rol usuario_normal que ejecutó una acción reservada para administradores (accion_admin).',
+    description: 'Detecta cuando un usuario sin privilegios de administrador intenta ejecutar acciones reservadas exclusivamente para roles administrativos.',
     category: 'Privilegios',
     code: `intento_escalada(Usuario) :-
     rol_usuario(Usuario, usuario_normal),
@@ -142,15 +146,16 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R08', name: 'descarga_masiva/1',
-    description: '10 o más descargas exitosas del mismo usuario — posible exfiltración de datos. findall acumula todos los timestamps de descarga.',
+    description: 'Alerta cuando un usuario realiza 10 o más descargas exitosas, lo que puede indicar un intento de exfiltración masiva de información.',
     category: 'Exfiltración',
     code: `descarga_masiva(Usuario) :-
-    findall(T, log_entrada(T, Usuario, _, descarga, exito), Ts),
-    length(Ts, N), N >= 10.`,
+    setof(T, IP^log_entrada(T, Usuario, IP, descarga, exito), Ts),
+    length(Ts, N),
+    N >= 10.`,
   },
   {
     id: 'R09', name: 'acceso_tras_intentos/2',
-    description: 'Login exitoso que ocurre DESPUÉS de 3+ fallos desde la misma IP — el ataque de fuerza bruta tuvo resultado.',
+    description: 'Detecta cuando un login exitoso ocurre después de 3 o más intentos fallidos desde la misma IP, indicando que un ataque de fuerza bruta logró ingresar.',
     category: 'Intrusión',
     code: `acceso_tras_intentos(Usuario, IP) :-
     setof(T, log_entrada(T, Usuario, IP, login, fallo), TsFallos),
@@ -163,19 +168,19 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R10', name: 'usuario_desconocido/2',
-    description: 'Usuario sin rol definido en la base de hechos que intentó acceder. El núcleo es la negación por falla: \\+ rol_usuario(U, _).',
+    description: 'Alerta sobre intentos de acceso realizados por usuarios que no existen en el sistema, lo que puede indicar reconocimiento de cuentas o uso de credenciales falsas.',
     category: 'Reconocimiento',
     code: `usuario_desconocido(Usuario, IP) :-
-    \\+ rol_usuario(Usuario, _),
-    setof(_, T^log_entrada(T, Usuario, IP, login, fallo), _).`,
+    setof(_, T^log_entrada(T, Usuario, IP, login, fallo), _),
+    \\+ rol_usuario(Usuario, _).`,
   },
   {
     id: 'R11', name: 'horario_atipico/2',
-    description: 'Login en una hora en la que el usuario NUNCA ha accedido antes. \\+ member/2 sobre el historial es un caso clásico de negación por falla.',
+    description: 'Identifica cuando un usuario inicia sesión a una hora del día en la que nunca ha accedido previamente, lo que puede señalar un compromiso de cuenta.',
     category: 'Anomalía',
     code: `horario_atipico(Usuario, Timestamp) :-
-    extraer_hora_dia(Timestamp, HoraActual),
     log_entrada(Timestamp, Usuario, _, login, exito),
+    extraer_hora_dia(Timestamp, HoraActual),
     findall(H,
         (log_entrada(T2, Usuario, _, login, exito),
          T2 \\= Timestamp,
@@ -186,7 +191,7 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R12', name: 'origen_sospechoso/2',
-    description: 'Login exitoso desde una IP listada como prohibida — simplificación de detección por origen geográfico (GeoIP).',
+    description: 'Detecta logins exitosos desde IPs con origen geográfico sospechoso o restringido, basándose en listas de ubicaciones bloqueadas.',
     category: 'Geolocalización',
     code: `origen_sospechoso(Usuario, IP) :-
     log_entrada(_, Usuario, IP, login, exito),
@@ -194,7 +199,7 @@ export const prologRulesDefinitions: Omit<PrologRule, 'triggered'>[] = [
   },
   {
     id: 'R13', name: 'sesion_simultanea/1',
-    description: 'Mismo usuario con logins exitosos desde dos IPs distintas en menos de 300 segundos. Ambas IPs se verifican contra la lista blanca con \\+ ip_confiable/1.',
+    description: 'Alerta cuando el mismo usuario registra logins exitosos desde dos IPs distintas con menos de 5 minutos de diferencia, lo que sugiere uso compartido o robo de credenciales.',
     category: 'Sesiones',
     code: `sesion_simultanea(Usuario) :-
     log_entrada(T1, Usuario, IP1, login, exito),

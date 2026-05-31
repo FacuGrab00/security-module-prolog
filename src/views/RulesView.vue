@@ -7,23 +7,20 @@
 
     <div class="px-3 sm:px-6 pb-6 space-y-4">
       <!-- Info -->
-      <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
-          <p class="text-xl sm:text-2xl font-bold text-white">{{ rules.length }}</p>
-          <p class="text-xs text-slate-400 mt-1">Reglas definidas</p>
-        </div>
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
-          <p class="text-xl sm:text-2xl font-bold text-cyan-400">{{ categories.length }}</p>
-          <p class="text-xs text-slate-400 mt-1">Categorías</p>
-        </div>
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
-          <p class="text-xl sm:text-2xl font-bold text-yellow-400">{{ totalTriggered }}</p>
-          <p class="text-xs text-slate-400 mt-1">Veces activadas</p>
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <StatCard v-for="card in statCards" :key="card.label" v-bind="card" />
       </div>
 
       <!-- Filtro por categoría -->
-      <div class="flex flex-wrap gap-2">
+      <!-- Mobile: select -->
+      <AppSelect
+        class="sm:hidden"
+        :model-value="filterCat ?? 'Todas'"
+        :options="[{ value: 'Todas', label: 'Todas las categorías' }, ...categories.map(c => ({ value: c, label: c }))]"
+        @update:model-value="v => filterCat = v === 'Todas' ? null : v"
+      />
+      <!-- Desktop: botones -->
+      <div class="hidden sm:flex flex-wrap gap-2">
         <button
           v-for="cat in ['Todas', ...categories]"
           :key="cat"
@@ -53,9 +50,9 @@
               <span class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full">{{ rule.category }}</span>
               <span
                 v-if="rule.triggered > 0"
-                class="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full"
+                class="text-xs px-2 py-0.5 bg-slate-700/60 text-slate-400 rounded-full"
               >
-                {{ rule.triggered }}×
+                {{ rule.triggered }}
               </span>
             </div>
           </div>
@@ -73,8 +70,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { BookOpen, Tag, Zap } from '@lucide/vue'
 import AppHeader from '../components/layout/AppHeader.vue'
 import PrologCode from '../components/shared/PrologCode.vue'
+import StatCard from '../components/shared/StatCard.vue'
+import AppSelect from '../components/shared/AppSelect.vue'
 import { prologRulesDefinitions } from '../mock/data'
 import { useAlertsStore } from '../stores/alerts'
 import type { PrologRule } from '../types'
@@ -82,7 +82,6 @@ import type { PrologRule } from '../types'
 const store     = useAlertsStore()
 const filterCat = ref<string | null>(null)
 
-// Mapeo: tipo de alerta Prolog (campo "type" del JSON) → id de regla estática
 const ALERT_TYPE_TO_RULE: Record<string, string> = {
   ataque_fuerza_bruta:      'R01',
   ataque_masivo_ip:         'R02',
@@ -99,12 +98,9 @@ const ALERT_TYPE_TO_RULE: Record<string, string> = {
   sesion_simultanea:        'R13',
 }
 
-// Cuenta cuántas alertas disparó cada regla usando el campo "prologRule" que
-// ya contiene el nombre del predicado (ej. "ataque_fuerza_bruta(admin, 1.2.3.4).")
 const triggeredByRule = computed(() => {
   const counts: Record<string, number> = {}
   for (const alert of store.alerts) {
-    // Extraer el nombre del predicado del fragmento de código Prolog almacenado
     const predicado = alert.prologRule?.split('(')[0]?.trim() ?? ''
     const ruleId = ALERT_TYPE_TO_RULE[predicado]
     if (ruleId) counts[ruleId] = (counts[ruleId] ?? 0) + 1
@@ -112,7 +108,6 @@ const triggeredByRule = computed(() => {
   return counts
 })
 
-// Combina definiciones estáticas con triggered count dinámico
 const rules = computed((): PrologRule[] =>
   prologRulesDefinitions.map(r => ({
     ...r,
@@ -125,4 +120,37 @@ const totalTriggered = computed(() => rules.value.reduce((s, r) => s + r.trigger
 const filteredRules  = computed(() =>
   filterCat.value ? rules.value.filter(r => r.category === filterCat.value) : rules.value
 )
+
+const statCards = computed(() => [
+  {
+    label: 'Reglas definidas',
+    value: rules.value.length,
+    sub:   'En el motor Prolog',
+    icon:  BookOpen,
+    iconBg: 'bg-cyan-500/20',
+    iconColor: 'text-cyan-400',
+    borderColor: 'border-slate-700',
+    valueColor: 'text-white',
+  },
+  {
+    label: 'Categorías',
+    value: categories.value.length,
+    sub:   'Tipos de amenaza',
+    icon:  Tag,
+    iconBg: 'bg-blue-500/20',
+    iconColor: 'text-blue-400',
+    borderColor: 'border-slate-700',
+    valueColor: 'text-blue-400',
+  },
+  {
+    label: 'Veces activadas',
+    value: totalTriggered.value,
+    sub:   'Total de disparos',
+    icon:  Zap,
+    iconBg: 'bg-yellow-500/20',
+    iconColor: 'text-yellow-400',
+    borderColor: totalTriggered.value > 0 ? 'border-yellow-500/30' : 'border-slate-700',
+    valueColor: totalTriggered.value > 0 ? 'text-yellow-400' : 'text-white',
+  },
+])
 </script>

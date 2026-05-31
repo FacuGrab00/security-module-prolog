@@ -101,8 +101,12 @@ export const useAppStore = defineStore('app', () => {
     return String(body.result ?? body.error ?? '')
   }
 
+  async function runFreeQuery(query: string): Promise<{ ok: boolean; result?: string; solutions?: number; error?: string }> {
+    return postJson('/api/free_query', { query })
+  }
+
   return {
     isLoading, prologOnline, prologStats, loadedFiles, stats,
-    fetchAll, fetchStats, importCSV, clearData, generateReport, runQuery,
+    fetchAll, fetchStats, importCSV, clearData, generateReport, runQuery, runFreeQuery,
   }
 })

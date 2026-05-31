@@ -29,7 +29,7 @@
 import { computed } from 'vue'
 import hljs from 'highlight.js/lib/core'
 import prologLang from 'highlight.js/lib/languages/prolog'
-import 'highlight.js/styles/atom-one-dark.css'
+import 'highlight.js/styles/github-dark-dimmed.css'
 
 hljs.registerLanguage('prolog', prologLang)
 

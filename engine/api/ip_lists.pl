@@ -15,8 +15,9 @@
 responder_bloquear_ip(Request) :-
     cors_enable,
     http_read_json_dict(Request, Cuerpo),
-    get_dict(ip, Cuerpo, IP),
-    (get_dict(motivo, Cuerpo, Motivo) -> true ; Motivo = 'Bloqueada manualmente'),
+    get_dict(ip, Cuerpo, IPRaw),
+    (string(IPRaw) -> atom_string(IP, IPRaw) ; IP = IPRaw),
+    (get_dict(motivo, Cuerpo, MotivoRaw) -> (string(MotivoRaw) -> atom_string(Motivo, MotivoRaw) ; Motivo = MotivoRaw) ; Motivo = 'Bloqueada manualmente'),
     (   ip_prohibida(IP, _)
     ->  reply_json_dict(_{ok: false, message: 'La IP ya estaba en la lista negra'})
     ;   assertz(ip_prohibida(IP, Motivo)),
@@ -33,7 +34,8 @@ responder_listar_blacklist(_Request) :-
 responder_remover_blacklist(Request) :-
     cors_enable,
     http_read_json_dict(Request, Cuerpo),
-    get_dict(ip, Cuerpo, IP),
+    get_dict(ip, Cuerpo, IPRaw),
+    (string(IPRaw) -> atom_string(IP, IPRaw) ; IP = IPRaw),
     (   ip_prohibida(IP, _)
     ->  retractall(ip_prohibida(IP, _)),
         reply_json_dict(_{ok: true, ip: IP, message: 'IP eliminada de la lista negra'})
@@ -50,7 +52,8 @@ responder_listar_whitelist(_Request) :-
 responder_agregar_whitelist(Request) :-
     cors_enable,
     http_read_json_dict(Request, Cuerpo),
-    get_dict(ip, Cuerpo, IP),
+    get_dict(ip, Cuerpo, IPRaw),
+    (string(IPRaw) -> atom_string(IP, IPRaw) ; IP = IPRaw),
     (   ip_confiable(IP)
     ->  reply_json_dict(_{ok: false, message: 'La IP ya estaba en la lista blanca'})
     ;   assertz(ip_confiable(IP)),
@@ -61,7 +64,8 @@ responder_agregar_whitelist(Request) :-
 responder_remover_whitelist(Request) :-
     cors_enable,
     http_read_json_dict(Request, Cuerpo),
-    get_dict(ip, Cuerpo, IP),
+    get_dict(ip, Cuerpo, IPRaw),
+    (string(IPRaw) -> atom_string(IP, IPRaw) ; IP = IPRaw),
     (   ip_confiable(IP)
     ->  retract(ip_confiable(IP)),
         reply_json_dict(_{ok: true, ip: IP, message: 'IP eliminada de la lista blanca'})

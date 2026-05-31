@@ -1,7 +1,7 @@
 <template>
   <div class="bg-slate-800/50 border border-slate-700 rounded-xl flex flex-col">
     <!-- Header -->
-    <div class="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-700">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-700">
       <div class="flex items-center gap-2">
         <AlertTriangle class="w-4 h-4 text-red-400 flex-shrink-0" />
         <h2 class="text-white font-semibold text-sm">Alertas de Seguridad</h2>
@@ -9,12 +9,12 @@
           {{ store.activeAlerts.length }} activas
         </span>
       </div>
-      <select v-model="filter" class="text-xs bg-slate-700 border border-slate-600 text-slate-300 rounded-lg px-2 py-1">
-        <option value="all">Todas</option>
-        <option value="critical">Críticas</option>
-        <option value="high">Altas</option>
-        <option value="active">Activas</option>
-      </select>
+      <AppSelect v-model="filter" :options="[
+        { value: 'all',      label: 'Todas' },
+        { value: 'critical', label: 'Críticas' },
+        { value: 'high',     label: 'Altas' },
+        { value: 'active',   label: 'Activas' },
+      ]" />
     </div>
 
     <!-- Lista -->
@@ -77,28 +77,34 @@
 
   <!-- Dialog de detalles -->
   <Teleport to="body">
+    <Transition name="dialog">
     <div v-if="selected" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="selected = null" />
-      <div class="relative w-full sm:max-w-lg bg-slate-800 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="dialog-panel relative w-full sm:max-w-lg bg-slate-800 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[90vh]">
+
+        <!-- Drag handle (mobile) -->
+        <div class="sm:hidden flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div class="w-10 h-1 rounded-full bg-slate-600" />
+        </div>
 
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
+        <div class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-700 flex-shrink-0">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-              <Info class="w-5 h-5 text-cyan-400" />
+            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+              <Info class="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
             </div>
             <div class="min-w-0">
-              <h3 class="text-white font-semibold">Detalles de la alerta</h3>
+              <h3 class="text-white font-semibold text-sm sm:text-base">Detalles de la alerta</h3>
               <p class="text-slate-400 text-xs font-mono">{{ selected.id }}</p>
             </div>
           </div>
-          <button @click="selected = null" class="text-slate-400 hover:text-white transition-colors flex-shrink-0">
+          <button @click="selected = null" class="text-slate-400 hover:text-white transition-colors flex-shrink-0 p-1">
             <X class="w-5 h-5" />
           </button>
         </div>
 
-        <!-- Body -->
-        <div class="px-4 sm:px-6 py-5 space-y-4">
+        <!-- Body (scrolleable) -->
+        <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
 
           <!-- Chips de estado -->
           <div class="flex items-center gap-2 flex-wrap">
@@ -107,41 +113,41 @@
           </div>
 
           <!-- Campos dinámicos -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+          <div class="grid grid-cols-2 gap-2 sm:gap-3">
+            <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2.5">
               <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Clock class="w-3 h-3" />Detectada</p>
-              <p class="text-sm text-white">{{ selected.timestamp }}</p>
+              <p class="text-xs sm:text-sm text-white">{{ selected.timestamp }}</p>
             </div>
-            <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+            <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2.5">
               <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Tag class="w-3 h-3" />Tipo</p>
-              <p class="text-sm text-white break-words">{{ selected.label }}</p>
+              <p class="text-xs sm:text-sm text-white break-words">{{ selected.label }}</p>
             </div>
 
             <template v-for="field in alertFields(selected)" :key="field.label">
-              <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+              <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2.5">
                 <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
                   <component :is="field.icon" class="w-3 h-3" />{{ field.label }}
                 </p>
-                <p class="text-sm text-white break-all" :class="field.mono ? 'font-mono' : ''">{{ field.value }}</p>
+                <p class="text-xs sm:text-sm text-white break-all" :class="field.mono ? 'font-mono' : ''">{{ field.value }}</p>
               </div>
             </template>
 
-            <div v-if="selected.count" class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+            <div v-if="selected.count" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2.5">
               <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Hash class="w-3 h-3" />Eventos</p>
-              <p class="text-sm text-white">{{ selected.count }}</p>
+              <p class="text-xs sm:text-sm text-white">{{ selected.count }}</p>
             </div>
           </div>
 
           <!-- Descripción -->
-          <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
+          <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2.5">
             <p class="text-xs text-slate-500 mb-1.5">Descripción</p>
-            <p class="text-sm text-slate-300 leading-relaxed">{{ selected.description }}</p>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">{{ selected.description }}</p>
           </div>
 
         </div>
 
         <!-- Footer -->
-        <div class="flex justify-end px-4 sm:px-6 py-4 border-t border-slate-700">
+        <div class="flex justify-end px-4 sm:px-6 py-3 border-t border-slate-700 flex-shrink-0">
           <button
             @click="selected = null"
             class="px-4 py-2 text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors"
@@ -149,12 +155,14 @@
         </div>
       </div>
     </div>
+    </Transition>
   </Teleport>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, type Component } from 'vue'
 import { AlertTriangle, User, Globe, Hash, Ban, X, Info, Clock, CheckCircle, Tag, Shield, Calendar } from '@lucide/vue'
+import AppSelect from '../shared/AppSelect.vue'
 import { useAlertsStore } from '../../stores/alerts'
 import type { SecurityAlert } from '../../types'
 import { alertIP } from '../../utils/prologMapper'
@@ -268,3 +276,42 @@ const filteredAlerts = computed(() => {
   })
 })
 </script>
+
+<style scoped>
+/* Backdrop: fade */
+.dialog-enter-active,
+.dialog-leave-active {
+  transition: opacity 0.25s ease;
+}
+.dialog-enter-from,
+.dialog-leave-to {
+  opacity: 0;
+}
+
+/* Panel mobile: slide up */
+.dialog-enter-active .dialog-panel {
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.dialog-leave-active .dialog-panel {
+  transition: transform 0.25s ease-in;
+}
+.dialog-enter-from .dialog-panel,
+.dialog-leave-to .dialog-panel {
+  transform: translateY(100%);
+}
+
+/* Panel desktop: scale + fade */
+@media (min-width: 640px) {
+  .dialog-enter-active .dialog-panel {
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  }
+  .dialog-leave-active .dialog-panel {
+    transition: transform 0.2s ease-in, opacity 0.15s ease;
+  }
+  .dialog-enter-from .dialog-panel,
+  .dialog-leave-to .dialog-panel {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+</style>

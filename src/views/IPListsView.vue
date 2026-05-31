@@ -10,12 +10,11 @@
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <!--  LISTA BLANCA                                                      -->
       <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden flex flex-col max-h-[80vh]">
 
         <!-- Header -->
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
           <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
             <ShieldCheck class="w-4 h-4 text-emerald-400" />
             <h2 class="text-white font-semibold text-sm">Lista Blanca</h2>
             <span class="text-xs px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
@@ -32,18 +31,19 @@
           </button>
         </div>
 
-        <div class="p-5 space-y-4">
+        <div class="p-5 flex flex-col flex-1 min-h-0 gap-4 overflow-hidden">
           <!-- Descripción -->
-          <p class="text-xs text-slate-400 leading-relaxed">
+          <p class="text-xs text-slate-400 leading-relaxed shrink-0">
             Las IPs en esta lista son consideradas <span class="text-emerald-400 font-medium">seguras</span>.
-            Las reglas de detección las excluyen explícitamente — no generarán alertas aunque tengan actividad sospechosa.
+            Las reglas de detección las excluyen explícitamente.
           </p>
 
           <!-- Formulario agregar -->
+          <div class="flex flex-col gap-1.5 shrink-0">
           <div class="flex gap-2">
             <div
               class="flex-1 flex items-center bg-slate-900 border rounded-lg px-3 transition-colors"
-              :class="wlInput && !isValidIP(wlInput) ? 'border-red-500/60' : 'border-slate-600 focus-within:border-emerald-500'"
+              :class="wlInput && !isValidIP(wlInput) ? 'border-red-500/60' : wlInBlacklist ? 'border-orange-500/60' : 'border-slate-600 focus-within:border-emerald-500'"
             >
               <span class="text-slate-500 text-xs mr-2 font-mono">IP:</span>
               <input
@@ -64,9 +64,13 @@
               Agregar
             </button>
           </div>
+          <p v-if="wlInBlacklist" class="text-xs text-orange-400">
+            Esta IP está en la lista negra, eliminala primero antes de agregarla como confiable.
+          </p>
+          </div>
 
           <!-- Lista actual -->
-          <div class="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+          <div class="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1">
             <div v-if="store.whitelist.length === 0" class="text-center py-8 text-slate-500 text-xs">
               <ShieldCheck class="w-8 h-8 mx-auto mb-2 opacity-20" />
               <p>No hay IPs en la lista blanca</p>
@@ -97,12 +101,11 @@
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <!--  LISTA NEGRA                                                       -->
       <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden flex flex-col max-h-[80vh]">
 
         <!-- Header -->
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
           <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-red-400"></div>
             <ShieldX class="w-4 h-4 text-red-400" />
             <h2 class="text-white font-semibold text-sm">Lista Negra</h2>
             <span class="text-xs px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full">
@@ -119,19 +122,18 @@
           </button>
         </div>
 
-        <div class="p-5 space-y-4">
+        <div class="p-5 flex flex-col flex-1 min-h-0 gap-4 overflow-hidden">
           <!-- Descripción -->
-          <p class="text-xs text-slate-400 leading-relaxed">
+          <p class="text-xs text-slate-400 leading-relaxed shrink-0">
             Las IPs en esta lista son consideradas <span class="text-red-400 font-medium">peligrosas</span>.
-            Cualquier actividad desde estas IPs genera alertas críticas de inmediato.
           </p>
 
           <!-- Formulario agregar -->
-          <div class="space-y-2">
+          <div class="space-y-2 shrink-0">
             <div class="flex gap-2">
               <div
                 class="flex-1 flex items-center bg-slate-900 border rounded-lg px-3 transition-colors"
-                :class="blInput && !isValidIP(blInput) ? 'border-red-500/60' : 'border-slate-600 focus-within:border-red-500'"
+                :class="blInput && !isValidIP(blInput) ? 'border-red-500/60' : blInWhitelist ? 'border-orange-500/60' : 'border-slate-600 focus-within:border-red-500'"
               >
                 <span class="text-slate-500 text-xs mr-2 font-mono">IP:</span>
                 <input
@@ -152,6 +154,9 @@
                 Bloquear
               </button>
             </div>
+            <p v-if="blInWhitelist" class="text-xs text-orange-400">
+              Esta IP está en la lista blanca — eliminala primero antes de bloquearla.
+            </p>
             <input
               v-model="blMotivo"
               type="text"
@@ -162,7 +167,7 @@
           </div>
 
           <!-- Lista actual -->
-          <div class="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+          <div class="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1">
             <div v-if="store.blacklist.length === 0" class="text-center py-8 text-slate-500 text-xs">
               <ShieldX class="w-8 h-8 mx-auto mb-2 opacity-20" />
               <p>No hay IPs en la lista negra</p>
@@ -199,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ShieldCheck, ShieldX, ShieldOff, RefreshCw, Plus, Trash2 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import AppHeader from '../components/layout/AppHeader.vue'
@@ -215,6 +220,9 @@ const wlLoading    = ref(false)
 const blLoading    = ref(false)
 const removingWL   = ref<string | null>(null)
 const removingBL   = ref<string | null>(null)
+
+const wlInBlacklist = computed(() => isValidIP(wlInput.value) && store.blacklist.some(e => e.ip === wlInput.value.trim()))
+const blInWhitelist = computed(() => isValidIP(blInput.value) && store.whitelist.some(e => e.ip === blInput.value.trim()))
 
 // ─── Validación de IP ─────────────────────────────────────────────────────────
 
@@ -246,6 +254,13 @@ onMounted(loadLists)
 async function addWhitelist() {
   const ip = wlInput.value.trim()
   if (!ip || !isValidIP(ip)) return
+  if (store.blacklist.some(e => e.ip === ip)) {
+    toast.error(`${ip} ya está en la lista negra`, {
+      description: 'Eliminala de la lista negra antes de agregarla como confiable.',
+      duration: 6000,
+    })
+    return
+  }
   wlLoading.value = true
   try {
     const body = await store.addToWhitelist(ip)
@@ -254,7 +269,7 @@ async function addWhitelist() {
       wlInput.value = ''
     } else if (body.error) {
       toast.error('Motor Prolog no disponible', {
-        description: 'Reiniciá el servidor con: swipl security_engine.pl',
+        description: 'Reiniciá el servidor con: swipl server.pl',
         duration: 7000,
       })
     } else {
@@ -289,6 +304,13 @@ async function addBlacklist() {
   const ip     = blInput.value.trim()
   const motivo = blMotivo.value.trim() || 'Bloqueada manualmente'
   if (!ip || !isValidIP(ip)) return
+  if (store.whitelist.some(e => e.ip === ip)) {
+    toast.error(`${ip} ya está en la lista blanca`, {
+      description: 'Eliminala de la lista blanca antes de bloquearla.',
+      duration: 6000,
+    })
+    return
+  }
   blLoading.value = true
   try {
     const body = await store.addToBlacklist(ip, motivo)
@@ -301,7 +323,7 @@ async function addBlacklist() {
       blMotivo.value = ''
     } else if (body.error) {
       toast.error('Motor Prolog no disponible', {
-        description: 'Reiniciá el servidor con: swipl security_engine.pl',
+        description: 'Reiniciá el servidor con: swipl server.pl',
         duration: 7000,
       })
     } else {

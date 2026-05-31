@@ -9,6 +9,7 @@
 :- http_handler('/api/alerts',           responder_alertas,          [method(get)]).
 :- http_handler('/api/stats',            responder_estadisticas,     [method(get)]).
 :- http_handler('/api/query',            responder_consulta,         [method(get)]).
+:- http_handler('/api/free_query',       responder_consulta_libre,   [method(post)]).
 :- http_handler('/api/report',           responder_reporte,          [method(post)]).
 :- http_handler('/api/timeline',         responder_linea_temporal,   [method(get)]).
 :- http_handler('/api/logs',             responder_logs,             [method(get)]).
@@ -189,6 +190,29 @@ responder_limpiar_datos(_Request) :-
     cors_enable,
     retractall(log_entrada(_, _, _, _, _)),
     reply_json_dict(_{ok: true, message: 'Todos los registros fueron eliminados'}).
+
+% POST /api/free_query  { "query": "<consulta prolog>" }
+% Ejecuta una consulta Prolog arbitraria y devuelve todas las soluciones.
+responder_consulta_libre(Request) :-
+    cors_enable,
+    http_read_json_dict(Request, Cuerpo),
+    get_dict(query, Cuerpo, QueryRaw),
+    (string(QueryRaw) -> atom_string(QueryAtom, QueryRaw) ; QueryAtom = QueryRaw),
+    % Eliminar punto final si el usuario lo incluyó
+    (atom_concat(Base, '.', QueryAtom) -> true ; Base = QueryAtom),
+    catch(
+        (term_to_atom(Goal, Base),
+         findall(Goal, call(Goal), Soluciones),
+         length(Soluciones, N),
+         (   Soluciones = []
+         ->  reply_json_dict(_{ok: true, result: 'false.', solutions: 0})
+         ;   term_to_atom(Soluciones, ResultAtom),
+             reply_json_dict(_{ok: true, result: ResultAtom, solutions: N})
+         )),
+        Error,
+        (term_to_atom(Error, ErrAtom),
+         reply_json_dict(_{ok: false, error: ErrAtom}))
+    ).
 
 % POST /api/report  { "output": "ruta/opcional.txt" }
 responder_reporte(Request) :-

@@ -52,16 +52,13 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText, ShieldHalf } from '@lucide/vue'
-import { useAlertsStore } from '../../stores/alerts'
 import { useSidebar } from '../../composables/useSidebar'
 
 const route   = useRoute()
-const store   = useAlertsStore()
 const sidebar = useSidebar()
-const active  = computed(() => store.activeAlerts.length)
 
 const navItems = computed(() => [
-  { to: '/',        label: 'Dashboard',      icon: LayoutDashboard, badge: active.value > 0 ? active.value : null, badgeColor: 'bg-red-500/20 text-red-400' },
+  { to: '/',        label: 'Dashboard',      icon: LayoutDashboard },
   { to: '/logs',    label: 'Logs de Acceso', icon: ScrollText },
   { to: '/queries', label: 'Consultas Prolog', icon: Search },
   { to: '/rules',   label: 'Base de Reglas', icon: BookOpen },

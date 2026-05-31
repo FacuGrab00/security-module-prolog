@@ -3,6 +3,9 @@
 %  IPs prohibidas, IPs de confianza, roles de usuarios y horario laboral.
 % =============================================================================
 
+:- dynamic ip_prohibida/2.
+:- dynamic ip_confiable/1.
+
 % --- IPs PROHIBIDAS (lista negra inicial) ------------------------------------
 ip_prohibida('45.33.32.156',   'Escaneo masivo de puertos detectado').
 ip_prohibida('23.129.64.200',  'IP de origen anonimo no rastreable').

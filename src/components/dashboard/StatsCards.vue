@@ -1,22 +1,6 @@
 <template>
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-    <div
-      v-for="card in cards"
-      :key="card.label"
-      class="bg-slate-800/50 border rounded-xl p-3 sm:p-4 flex flex-col gap-2 sm:gap-3"
-      :class="card.borderColor"
-    >
-      <div class="flex items-center justify-between">
-        <span class="text-slate-400 text-xs font-medium uppercase tracking-wide leading-tight">{{ card.label }}</span>
-        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" :class="card.iconBg">
-          <component :is="card.icon" class="w-3.5 h-3.5 sm:w-4 sm:h-4" :class="card.iconColor" />
-        </div>
-      </div>
-      <div>
-        <p class="text-xl sm:text-2xl font-bold" :class="card.valueColor">{{ card.value }}</p>
-        <p class="text-xs text-slate-500 mt-0.5">{{ card.sub }}</p>
-      </div>
-    </div>
+    <StatCard v-for="card in cards" :key="card.label" v-bind="card" />
   </div>
 </template>
 
@@ -24,6 +8,7 @@
 import { computed } from 'vue'
 import { ScrollText, AlertTriangle, ShieldOff, Activity, CheckCircle } from '@lucide/vue'
 import { useAppStore } from '../../stores/app'
+import StatCard from '../shared/StatCard.vue'
 
 const store = useAppStore()
 
