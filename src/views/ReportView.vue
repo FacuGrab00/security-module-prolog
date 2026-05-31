@@ -43,25 +43,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { FileText, Download, RefreshCw, FileDown } from '@lucide/vue';
+import {ref, computed, onMounted} from 'vue';
+import {FileText, Download, RefreshCw, FileDown} from '@lucide/vue';
 import AppHeader from '../components/layout/AppHeader.vue';
 import AppButton from '../components/shared/AppButton.vue';
-import { useAppStore } from '../stores/app';
-import { useReportPDF } from '../composables/useReportPDF';
+import {useAppStore} from '../stores/app';
+import {useReportPDF} from '../composables/useReportPDF';
 
-const store         = useAppStore();
+const store = useAppStore();
 const reportContent = ref('Cargando reporte desde el motor Prolog...');
-const isGenerating  = ref(false);
+const isGenerating = ref(false);
 
 const hasContent = computed(() => {
   return reportContent.value.length > 0 &&
-    !reportContent.value.startsWith('(') &&
-    !reportContent.value.startsWith('⚠') &&
-    !reportContent.value.startsWith('Cargando');
+      !reportContent.value.startsWith('(') &&
+      !reportContent.value.startsWith('⚠') &&
+      !reportContent.value.startsWith('Cargando');
 });
 
-const { isExporting: isExportingPDF, downloadPDF } = useReportPDF(reportContent, computed(() => store.prologStats));
+const {isExporting: isExportingPDF, downloadPDF} = useReportPDF(reportContent, computed(() => store.prologStats));
 
 async function loadReport() {
   isGenerating.value = true;
@@ -84,10 +84,10 @@ async function loadReport() {
 onMounted(loadReport);
 
 function downloadReport() {
-  const blob = new Blob([reportContent.value], { type: 'text/plain;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
+  const blob = new Blob([reportContent.value], {type: 'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
   a.download = `reporte_auditoria_${new Date().toISOString().slice(0, 10)}.txt`;
   a.click();
   URL.revokeObjectURL(url);

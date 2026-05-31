@@ -4,7 +4,7 @@ import {postJson} from '../utils/api'
 import {useAlertsStore} from './alerts'
 import {useIpListsStore} from './ipLists'
 import {useLogsStore} from './logs'
-import type {PrologStats} from '../utils/prologMapper'
+import type {PrologStats} from '../types/prologTypes'
 
 interface LoadedFile {
     name: string
@@ -101,13 +101,9 @@ export const useAppStore = defineStore('app', () => {
         return String(body.result ?? body.error ?? '')
     }
 
-    async function runFreeQuery(query: string): Promise<{
-        ok: boolean;
-        result?: string;
-        solutions?: number;
-        error?: string
-    }> {
-        return postJson('/api/free_query', {query})
+    async function runFreeQuery(query: string): Promise<{ok: boolean; result?: string; solutions?: number; error?: string}> {
+        const body = await postJson('/api/free_query', {query});
+        return body as {ok: boolean; result?: string; solutions?: number; error?: string};
     }
 
     return {

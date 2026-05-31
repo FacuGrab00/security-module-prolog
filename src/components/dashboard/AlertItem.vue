@@ -53,7 +53,7 @@
 import {Ban, X, Info, RotateCcw} from '@lucide/vue';
 import AppButton from '../shared/AppButton.vue';
 import type {SecurityAlert} from '../../types';
-import {alertIP} from '../../utils/prologMapper';
+import {alertIP} from '../../mappers/alertMapper';
 
 defineProps<{ alert: SecurityAlert }>();
 

@@ -1,7 +1,7 @@
 import {ref} from 'vue';
 import {jsPDF} from 'jspdf';
 import type {Ref} from 'vue';
-import type {PrologStats} from '../utils/prologMapper';
+import type {PrologStats} from '../types/prologTypes';
 
 interface AlertEntry {
     header: string;

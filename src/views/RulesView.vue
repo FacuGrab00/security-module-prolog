@@ -23,7 +23,7 @@ import AppHeader from '../components/layout/AppHeader.vue'
 import RuleCard from '../components/prolog/RuleCard.vue'
 import StatCard from '../components/shared/StatCard.vue'
 import FilterTabs from '../components/shared/FilterTabs.vue'
-import {prologRulesDefinitions} from '../mock/data'
+import {prologRulesDefinitions} from '../data/prologRules'
 import {useAlertsStore} from '../stores/alerts'
 import type {PrologRule} from '../types'
 

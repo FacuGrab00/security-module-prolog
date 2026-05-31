@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
-import {prologLogToUI} from '../utils/prologMapper'
-import type {PrologLog} from '../utils/prologMapper'
+import {prologLogToUI} from '../mappers/logMapper'
+import type {PrologLog} from '../types/prologTypes'
 
 export const useLogsStore = defineStore('logs', () => {
     const logs = ref<ReturnType<typeof prologLogToUI>[]>([])

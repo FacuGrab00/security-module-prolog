@@ -29,7 +29,7 @@ import {Play} from '@lucide/vue'
 import AppButton from '../shared/AppButton.vue'
 import QueryCard from '../prolog/QueryCard.vue'
 import QueryResult from '../prolog/QueryResult.vue'
-import {auditQueries} from '../../mock/data'
+import {auditQueries} from '../../data/auditQueries'
 import {useAppStore} from '../../stores/app'
 
 const query = auditQueries.find(q => q.id === 'Q4')!

@@ -1,8 +1,8 @@
 import {defineStore} from 'pinia'
 import {ref, computed, watch} from 'vue'
 import type {SecurityAlert, AlertStatus} from '../types'
-import {prologAlertToUI, alertIP} from '../utils/prologMapper'
-import type {PrologAlert} from '../utils/prologMapper'
+import {prologAlertToUI, alertIP} from '../mappers/alertMapper'
+import type {PrologAlert} from '../types/prologTypes'
 
 export const useAlertsStore = defineStore('alerts', () => {
     const alerts = ref<SecurityAlert[]>([])

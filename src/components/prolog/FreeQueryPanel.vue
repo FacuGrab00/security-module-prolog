@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import {Play, Terminal} from '@lucide/vue'
-import AppButton from './AppButton.vue'
+import AppButton from '../shared/AppButton.vue'
 import {useAppStore} from '../../stores/app'
 
 const store = useAppStore()

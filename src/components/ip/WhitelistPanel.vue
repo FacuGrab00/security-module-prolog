@@ -68,8 +68,8 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue';
 import {ShieldCheck, RefreshCw, Plus} from '@lucide/vue';
-import AppButton from './AppButton.vue';
-import EmptyState from './EmptyState.vue';
+import AppButton from '../shared/AppButton.vue';
+import EmptyState from '../shared/EmptyState.vue';
 import IPListItem from './IPListItem.vue';
 import {toast} from 'vue-sonner';
 import {useIpListsStore} from '../../stores/ipLists';
