@@ -3,7 +3,7 @@
     <div
       v-for="card in cards"
       :key="card.label"
-      class="bg-slate-800/50 border rounded-xl p-4 flex flex-col gap-3 transition-all hover:border-opacity-60"
+      class="bg-slate-800/50 border rounded-xl p-4 flex flex-col gap-3"
       :class="card.borderColor"
     >
       <div class="flex items-center justify-between">

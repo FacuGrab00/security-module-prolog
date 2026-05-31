@@ -23,24 +23,13 @@
         >{{ appStore.prologOnline ? 'Activo' : 'Desconectado' }}</span>
       </div>
 
-      <!-- Botón alerta crítica pulsante -->
-      <button
-        v-if="alertsStore.criticalAlerts.length > 0"
-        class="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 text-xs font-medium hover:bg-red-500/30 transition-colors animate-pulse-slow"
-      >
-        <AlertTriangle class="w-3.5 h-3.5" />
-        {{ alertsStore.criticalAlerts.length }} Crítica{{ alertsStore.criticalAlerts.length > 1 ? 's' : '' }}
-      </button>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { AlertTriangle } from '@lucide/vue'
-import { useAppStore }    from '../../stores/app'
-import { useAlertsStore } from '../../stores/alerts'
+import { useAppStore } from '../../stores/app'
 
 defineProps<{ title: string; subtitle?: string }>()
-const appStore    = useAppStore()
-const alertsStore = useAlertsStore()
+const appStore = useAppStore()
 </script>

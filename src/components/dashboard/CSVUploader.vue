@@ -303,27 +303,47 @@ function handleDrop(e: DragEvent) {
 
 // ─── Demo ─────────────────────────────────────────────────────────────────────
 
+// Timestamps clave (UTC):
+//   1779678000 → hora 3  (fuera de horario laboral 8-20) → regla 3
+//   1779660000 → hora 22 (fuera del historial de lrodriguez) → regla 11
+//   1779700xxx → hora 9  (ventana principal de eventos)
 const DEMO_CSV = `timestamp,usuario,ip,accion,resultado
-1779703200,hacker01,203.0.113.45,login,fallo
-1779703210,hacker01,203.0.113.45,login,fallo
-1779703220,hacker01,203.0.113.45,login,fallo
-1779703230,hacker01,203.0.113.45,login,fallo
-1779703240,hacker01,203.0.113.45,login,fallo
-1779703300,admin_ti,198.51.100.7,login,fallo
-1779703310,jgonzalez,198.51.100.7,login,fallo
-1779703320,mperez,198.51.100.7,login,fallo
-1779703330,lrodriguez,198.51.100.7,login,fallo
-1779703400,scanner,45.33.32.156,login,fallo
-1779703500,jgonzalez,203.0.113.10,login,exito
-1779703620,jgonzalez,198.51.100.20,login,exito
-1779672600,admin_ti,192.168.0.10,login,exito
-1779703700,mperez,198.51.100.30,login,fallo
-1779703710,mperez,198.51.100.30,login,fallo
-1779703720,mperez,198.51.100.30,login,fallo
-1779703730,mperez,198.51.100.30,login,exito
-1779703800,respaldo_bd,192.168.1.20,login,exito
-1779703900,intruso1,203.0.113.77,login,fallo
-1779703910,intruso1,203.0.113.77,login,fallo`
+1779700100,hacker01,203.0.113.45,login,fallo
+1779700110,hacker01,203.0.113.45,login,fallo
+1779700120,hacker01,203.0.113.45,login,fallo
+1779700130,hacker01,203.0.113.45,login,fallo
+1779700140,hacker01,203.0.113.45,login,fallo
+1779700200,user_a,198.51.100.7,login,fallo
+1779700210,user_b,198.51.100.7,login,fallo
+1779700220,user_c,198.51.100.7,login,fallo
+1779678000,admin_ti,192.168.1.10,login,exito
+1779700300,scanner,45.33.32.156,login,fallo
+1779700400,respaldo_bd,192.168.1.20,login,exito
+1779700500,jgonzalez,10.0.0.50,login,exito
+1779700600,jgonzalez,172.16.0.5,login,exito
+1779700700,jgonzalez,203.0.113.10,login,exito
+1779700800,jgonzalez,198.51.100.20,login,exito
+1779700900,jperez,192.168.2.50,accion_admin,exito
+1779701000,mlopez,10.20.30.40,descarga,exito
+1779701010,mlopez,10.20.30.40,descarga,exito
+1779701020,mlopez,10.20.30.40,descarga,exito
+1779701030,mlopez,10.20.30.40,descarga,exito
+1779701040,mlopez,10.20.30.40,descarga,exito
+1779701050,mlopez,10.20.30.40,descarga,exito
+1779701060,mlopez,10.20.30.40,descarga,exito
+1779701070,mlopez,10.20.30.40,descarga,exito
+1779701080,mlopez,10.20.30.40,descarga,exito
+1779701090,mlopez,10.20.30.40,descarga,exito
+1779701200,mperez,198.51.100.30,login,fallo
+1779701210,mperez,198.51.100.30,login,fallo
+1779701220,mperez,198.51.100.30,login,fallo
+1779701300,mperez,198.51.100.30,login,exito
+1779701400,attacker,45.33.32.156,login,exito
+1779660000,lrodriguez,10.30.40.50,login,exito
+1779703200,lrodriguez,192.168.4.10,login,exito
+1779703600,lrodriguez,192.168.4.11,login,exito
+1779701500,intruso99,203.0.113.77,login,fallo
+1779701510,intruso99,203.0.113.77,login,fallo`
 
 function loadDemo() {
   processContent(DEMO_CSV, 'demo_logs.csv')
