@@ -72,7 +72,7 @@ PROLOG_PORT=8080
 
 ### 3. Levantar el motor Prolog (Terminal 1)
 ```bash
-swipl security_engine.pl
+swipl server.pl
 ```
 Cuando inicia correctamente muestra:
 ```

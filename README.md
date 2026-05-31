@@ -36,7 +36,7 @@ npm install
 ### Terminal 1 — Motor Prolog (puerto 8080)
 
 ```bash
-swipl security_engine.pl
+swipl server.pl
 ```
 
 Para detenerlo: `Ctrl + C`
