@@ -1,5 +1,5 @@
 export type AlertSeverity = 'critical' | 'high' | 'medium' | 'low'
-export type AlertStatus   = 'active' | 'resolved' | 'investigating'
+export type AlertStatus   = 'active' | 'resolved' | 'investigating' | 'dismissed'
 export type LogResult     = 'success' | 'failure'
 export type UserRole      = 'admin' | 'operator' | 'user' | 'guest'
 

@@ -208,6 +208,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ShieldCheck, ShieldX, ShieldOff, RefreshCw, Plus, Trash2 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import AppHeader from '../components/layout/AppHeader.vue'
+import AppSelect from '../components/shared/AppSelect.vue'
 import { useIpListsStore } from '../stores/ipLists'
 
 const store = useIpListsStore()
@@ -351,4 +352,5 @@ async function removeBlacklist(ip: string) {
     removingBL.value = null
   }
 }
+
 </script>

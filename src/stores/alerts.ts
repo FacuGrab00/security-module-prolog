@@ -17,7 +17,11 @@ export const useAlertsStore = defineStore('alerts', () => {
   async function fetchAlerts() {
     const res  = await fetch('/api/alerts')
     const body = await res.json() as { alerts: PrologAlert[] }
-    alerts.value = body.alerts.map(prologAlertToUI).filter(a => !dismissedIds.value.has(a.id))
+    alerts.value = body.alerts.map(a => {
+      const alert = prologAlertToUI(a)
+      if (dismissedIds.value.has(alert.id)) alert.status = 'dismissed'
+      return alert
+    })
   }
 
   function syncResolved(blockedSet: Set<string>) {
@@ -40,12 +44,18 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   function dismissAlert(id: string) {
     dismissedIds.value = new Set([...dismissedIds.value, id])
-    const idx = alerts.value.findIndex(a => a.id === id)
-    if (idx !== -1) alerts.value.splice(idx, 1)
+    const alert = alerts.value.find(a => a.id === id)
+    if (alert) alert.status = 'dismissed'
+  }
+
+  function restoreAlert(id: string) {
+    dismissedIds.value = new Set([...dismissedIds.value].filter(i => i !== id))
+    const alert = alerts.value.find(a => a.id === id)
+    if (alert) alert.status = 'active'
   }
 
   return {
     alerts, activeAlerts, criticalAlerts,
-    fetchAlerts, syncResolved, markIPResolved, updateAlertStatus, dismissAlert,
+    fetchAlerts, syncResolved, markIPResolved, updateAlertStatus, dismissAlert, restoreAlert,
   }
 })

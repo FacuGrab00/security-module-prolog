@@ -196,10 +196,13 @@ export function alertIP(alert: SecurityAlert): string | null {
   }
 }
 
-export function prologAlertToUI(a: PrologAlert, index: number): SecurityAlert {
+
+export function prologAlertToUI(a: PrologAlert, _index: number): SecurityAlert {
   const typeKey = a.type as SecurityAlert['type']
+  const payloadKey = Object.values(a.payload).join('-')
+  const id = `${a.type}-${payloadKey}`
   return {
-    id:          `ALT-${String(index + 1).padStart(3, '0')}`,
+    id,
     type:        typeKey,
     label:       TYPE_LABEL[a.type] ?? a.type,
     description: buildDescription(a.type, a.payload),

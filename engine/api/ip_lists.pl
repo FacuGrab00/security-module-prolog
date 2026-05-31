@@ -71,3 +71,4 @@ responder_remover_whitelist(Request) :-
         reply_json_dict(_{ok: true, ip: IP, message: 'IP eliminada de la lista blanca'})
     ;   reply_json_dict(_{ok: false, message: 'La IP no estaba en la lista blanca'})
     ).
+

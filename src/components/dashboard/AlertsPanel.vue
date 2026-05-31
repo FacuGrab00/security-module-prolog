@@ -10,10 +10,12 @@
         </span>
       </div>
       <AppSelect v-model="filter" :options="[
-        { value: 'all',      label: 'Todas' },
-        { value: 'critical', label: 'Críticas' },
-        { value: 'high',     label: 'Altas' },
-        { value: 'active',   label: 'Activas' },
+        { value: 'all',       label: 'Todas' },
+        { value: 'critical',  label: 'Críticas' },
+        { value: 'high',      label: 'Altas' },
+        { value: 'medium',    label: 'Medias' },
+        { value: 'active',    label: 'Activas' },
+        { value: 'dismissed', label: 'Descartadas' },
       ]" />
     </div>
 
@@ -44,18 +46,27 @@
 
             <!-- Acciones -->
             <div class="flex flex-wrap items-center gap-2">
+              <template v-if="alert.status !== 'dismissed'">
+                <button
+                  v-if="alertIP(alert)"
+                  @click="emit('block-ip', alertIP(alert)!, alert)"
+                  class="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs rounded-md transition-colors"
+                >
+                  <Ban class="w-3 h-3" />Bloquear IP
+                </button>
+                <button
+                  @click="store.dismissAlert(alert.id)"
+                  class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-md transition-colors"
+                >
+                  <X class="w-3 h-3" />Descartar
+                </button>
+              </template>
               <button
-                v-if="alertIP(alert)"
-                @click="emit('block-ip', alertIP(alert)!, alert)"
-                class="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs rounded-md transition-colors"
+                v-if="alert.status === 'dismissed'"
+                @click="store.restoreAlert(alert.id)"
+                class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs rounded-md transition-colors"
               >
-                <Ban class="w-3 h-3" />Bloquear IP
-              </button>
-              <button
-                @click="store.dismissAlert(alert.id)"
-                class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-300 text-xs rounded-md transition-colors"
-              >
-                <X class="w-3 h-3" />Descartar
+                <RotateCcw class="w-3 h-3" />Restaurar
               </button>
               <button
                 @click="selected = alert"
@@ -68,9 +79,16 @@
         </div>
       </div>
 
-      <div v-if="filteredAlerts.length === 0" class="flex flex-col items-center justify-center py-12 text-slate-500">
-        <CheckCircle class="w-8 h-8 mb-2 text-emerald-500/40" />
-        <p class="text-sm">Sin alertas para este filtro</p>
+      <div v-if="filteredAlerts.length === 0" class="flex flex-col items-center justify-center py-12 text-slate-500 text-center px-4">
+        <template v-if="!hasLogs">
+          <ScrollText class="w-8 h-8 mb-2 opacity-20" />
+          <p class="text-sm font-medium text-slate-400">Sin registros cargados</p>
+          <p class="text-xs mt-1">Importá un archivo CSV para que el motor pueda detectar amenazas</p>
+        </template>
+        <template v-else>
+          <CheckCircle class="w-8 h-8 mb-2 text-emerald-500/40" />
+          <p class="text-sm">Sin alertas para este filtro</p>
+        </template>
       </div>
     </div>
   </div>
@@ -161,16 +179,19 @@
 
 <script setup lang="ts">
 import { ref, computed, type Component } from 'vue'
-import { AlertTriangle, User, Globe, Hash, Ban, X, Info, Clock, CheckCircle, Tag, Shield, Calendar } from '@lucide/vue'
+import { AlertTriangle, User, Globe, Hash, Ban, X, Info, Clock, CheckCircle, Tag, Shield, Calendar, ScrollText, RotateCcw } from '@lucide/vue'
 import AppSelect from '../shared/AppSelect.vue'
+import { useAppStore } from '../../stores/app'
 import { useAlertsStore } from '../../stores/alerts'
 import type { SecurityAlert } from '../../types'
 import { alertIP } from '../../utils/prologMapper'
 import SeverityBadge from '../shared/SeverityBadge.vue'
 import StatusBadge from '../shared/StatusBadge.vue'
 
-const emit  = defineEmits<{ 'block-ip': [ip: string, alert: SecurityAlert] }>()
-const store = useAlertsStore()
+const emit       = defineEmits<{ 'block-ip': [ip: string, alert: SecurityAlert] }>()
+const store      = useAlertsStore()
+const appStore   = useAppStore()
+const hasLogs    = computed(() => (appStore.prologStats?.total_events ?? 0) > 0)
 const filter   = ref<string>('all')
 const selected = ref<SecurityAlert | null>(null)
 
@@ -268,10 +289,12 @@ function alertFields(a: SecurityAlert): Field[] {
 
 const filteredAlerts = computed(() => {
   return store.alerts.filter(a => {
-    if (filter.value === 'all')      return a.status !== 'resolved'
-    if (filter.value === 'critical') return a.severity === 'critical' && a.status !== 'resolved'
-    if (filter.value === 'high')     return a.severity === 'high'     && a.status !== 'resolved'
-    if (filter.value === 'active')   return a.status === 'active'
+    if (filter.value === 'dismissed') return a.status === 'dismissed'
+    if (filter.value === 'all')       return a.status !== 'resolved' && a.status !== 'dismissed'
+    if (filter.value === 'critical')  return a.severity === 'critical' && a.status !== 'resolved' && a.status !== 'dismissed'
+    if (filter.value === 'high')      return a.severity === 'high'     && a.status !== 'resolved' && a.status !== 'dismissed'
+    if (filter.value === 'medium')    return a.severity === 'medium'   && a.status !== 'resolved' && a.status !== 'dismissed'
+    if (filter.value === 'active')    return a.status === 'active'
     return true
   })
 })

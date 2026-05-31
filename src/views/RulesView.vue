@@ -140,7 +140,7 @@ const statCards = computed(() => [
     iconBg: 'bg-blue-500/20',
     iconColor: 'text-blue-400',
     borderColor: 'border-slate-700',
-    valueColor: 'text-blue-400',
+    valueColor: 'text-white',
   },
   {
     label: 'Veces activadas',
@@ -150,7 +150,7 @@ const statCards = computed(() => [
     iconBg: 'bg-yellow-500/20',
     iconColor: 'text-yellow-400',
     borderColor: totalTriggered.value > 0 ? 'border-yellow-500/30' : 'border-slate-700',
-    valueColor: totalTriggered.value > 0 ? 'text-yellow-400' : 'text-white',
+    valueColor: 'text-white',
   },
 ])
 </script>

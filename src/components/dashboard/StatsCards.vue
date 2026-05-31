@@ -31,7 +31,7 @@ const cards = computed(() => [
     iconBg: 'bg-red-500/20',
     iconColor: 'text-red-400',
     borderColor: store.stats.criticalAlerts > 0 ? 'border-red-500/40' : 'border-slate-700',
-    valueColor: store.stats.criticalAlerts > 0 ? 'text-red-400' : 'text-white',
+    valueColor: 'text-white',
   },
   {
     label: 'IPs Bloqueadas',
@@ -41,7 +41,7 @@ const cards = computed(() => [
     iconBg: 'bg-orange-500/20',
     iconColor: 'text-orange-400',
     borderColor: 'border-slate-700',
-    valueColor: 'text-orange-400',
+    valueColor: 'text-white',
   },
   {
     label: 'Amenazas Activas',
@@ -51,7 +51,7 @@ const cards = computed(() => [
     iconBg: 'bg-yellow-500/20',
     iconColor: 'text-yellow-400',
     borderColor: store.stats.activeThreats > 0 ? 'border-yellow-500/30' : 'border-slate-700',
-    valueColor: store.stats.activeThreats > 0 ? 'text-yellow-400' : 'text-white',
+    valueColor: 'text-white',
   },
   {
     label: 'Tasa de Éxito',
@@ -61,7 +61,7 @@ const cards = computed(() => [
     iconBg: 'bg-emerald-500/20',
     iconColor: 'text-emerald-400',
     borderColor: 'border-slate-700',
-    valueColor: 'text-emerald-400',
+    valueColor: 'text-white',
   },
 ])
 </script>
