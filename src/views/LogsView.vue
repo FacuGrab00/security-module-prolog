@@ -5,29 +5,33 @@
       subtitle="Visualización de eventos procesados desde CSV y transformados a hechos Prolog"
     />
 
-    <div class="px-6 pb-6 space-y-4">
+    <div class="px-3 sm:px-6 pb-6 space-y-4">
       <!-- Filtros -->
-      <div class="flex flex-wrap items-center gap-3 bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3">
-        <Filter class="w-4 h-4 text-slate-400 flex-shrink-0" />
-        <input
-          v-model="search"
-          type="text"
-          placeholder="Buscar por usuario, IP o acción..."
-          class="flex-1 min-w-48 bg-slate-900 border border-slate-600 text-white rounded-lg px-3 py-1.5 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
-        />
-        <select v-model="resultFilter" class="bg-slate-700 border border-slate-600 text-slate-300 rounded-lg px-2 py-1.5 text-xs">
-          <option value="all">Todos</option>
-          <option value="success">Exitosos</option>
-          <option value="failure">Fallidos</option>
-        </select>
-        <select v-model="roleFilter" class="bg-slate-700 border border-slate-600 text-slate-300 rounded-lg px-2 py-1.5 text-xs">
-          <option value="all">Todos los roles</option>
-          <option value="admin">Admin</option>
-          <option value="operator">Operador</option>
-          <option value="user">Usuario</option>
-          <option value="guest">Invitado</option>
-        </select>
-        <span class="text-xs text-slate-500 ml-auto">{{ filtered.length }} registros</span>
+      <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3">
+        <div class="flex items-center gap-2">
+          <Filter class="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <input
+            v-model="search"
+            type="text"
+            placeholder="Buscar por usuario, IP o acción..."
+            class="flex-1 sm:min-w-48 bg-slate-900 border border-slate-600 text-white rounded-lg px-3 py-1.5 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <select v-model="resultFilter" class="flex-1 sm:flex-none bg-slate-700 border border-slate-600 text-slate-300 rounded-lg px-2 py-1.5 text-xs">
+            <option value="all">Todos</option>
+            <option value="success">Exitosos</option>
+            <option value="failure">Fallidos</option>
+          </select>
+          <select v-model="roleFilter" class="flex-1 sm:flex-none bg-slate-700 border border-slate-600 text-slate-300 rounded-lg px-2 py-1.5 text-xs">
+            <option value="all">Todos los roles</option>
+            <option value="admin">Admin</option>
+            <option value="operator">Operador</option>
+            <option value="user">Usuario</option>
+            <option value="guest">Invitado</option>
+          </select>
+          <span class="text-xs text-slate-500 whitespace-nowrap ml-auto sm:ml-0">{{ filtered.length }} registros</span>
+        </div>
       </div>
 
       <!-- Tabla -->
@@ -36,13 +40,13 @@
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-slate-700 bg-slate-800/80">
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Fecha y hora</th>
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Usuario</th>
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">IP</th>
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Rol</th>
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Acción</th>
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">País</th>
-                <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Resultado</th>
+                <th class="text-left text-xs text-slate-400 font-medium px-3 sm:px-4 py-3">Fecha</th>
+                <th class="text-left text-xs text-slate-400 font-medium px-3 sm:px-4 py-3">Usuario</th>
+                <th class="text-left text-xs text-slate-400 font-medium px-3 sm:px-4 py-3">IP</th>
+                <th class="hidden sm:table-cell text-left text-xs text-slate-400 font-medium px-4 py-3">Rol</th>
+                <th class="hidden md:table-cell text-left text-xs text-slate-400 font-medium px-4 py-3">Acción</th>
+                <th class="hidden lg:table-cell text-left text-xs text-slate-400 font-medium px-4 py-3">País</th>
+                <th class="text-left text-xs text-slate-400 font-medium px-3 sm:px-4 py-3">Resultado</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-700/50">
@@ -52,31 +56,30 @@
                 class="hover:bg-slate-700/30 transition-colors"
                 :class="log.result === 'failure' ? 'bg-red-500/5' : ''"
               >
-                <td class="px-4 py-2.5 whitespace-nowrap" :title="log.timestamp">
+                <td class="px-3 sm:px-4 py-2.5 whitespace-nowrap">
                   <span class="text-xs text-slate-300">{{ formatTs(log.timestamp) }}</span>
-                  <span class="block text-xs text-slate-600 font-mono">{{ log.timestamp }}</span>
                 </td>
-                <td class="px-4 py-2.5">
+                <td class="px-3 sm:px-4 py-2.5">
                   <span class="text-white font-medium text-xs">{{ log.user }}</span>
                 </td>
-                <td class="px-4 py-2.5">
+                <td class="px-3 sm:px-4 py-2.5">
                   <span
-                    class="font-mono text-xs"
+                    class="font-mono text-xs break-all"
                     :class="isBlocked(log.ip) ? 'text-red-400' : 'text-slate-300'"
                   >{{ log.ip }}</span>
                   <span v-if="isBlocked(log.ip)" class="ml-1 text-xs text-red-400">🚫</span>
                 </td>
-                <td class="px-4 py-2.5">
+                <td class="hidden sm:table-cell px-4 py-2.5">
                   <RoleBadge :role="log.role" />
                 </td>
-                <td class="px-4 py-2.5 text-xs text-slate-300 font-mono">{{ log.action }}</td>
-                <td class="px-4 py-2.5 text-xs text-slate-400">
+                <td class="hidden md:table-cell px-4 py-2.5 text-xs text-slate-300 font-mono">{{ log.action }}</td>
+                <td class="hidden lg:table-cell px-4 py-2.5 text-xs text-slate-400">
                   <span class="flex items-center gap-1">
                     <span>{{ flags[log.country] ?? '🌐' }}</span>
                     {{ log.country }}
                   </span>
                 </td>
-                <td class="px-4 py-2.5">
+                <td class="px-3 sm:px-4 py-2.5">
                   <span
                     class="text-xs px-2 py-0.5 rounded-full font-medium"
                     :class="log.result === 'success'
@@ -138,7 +141,6 @@ function formatTs(ts: string): string {
     year:   'numeric',
     hour:   '2-digit',
     minute: '2-digit',
-    second: '2-digit',
   })
 }
 

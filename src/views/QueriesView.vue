@@ -5,16 +5,16 @@
       subtitle="Queries no triviales para el administrador del sistema — usan variables, recursividad y negación por falla"
     />
 
-    <div class="px-6 pb-6 space-y-4">
+    <div class="px-3 sm:px-6 pb-6 space-y-4">
       <!-- Queries -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
           v-for="query in mockAuditQueries"
           :key="query.id"
           class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden hover:border-slate-600 transition-all"
         >
           <!-- Header de query -->
-          <div class="px-5 py-4 border-b border-slate-700">
+          <div class="px-4 sm:px-5 py-4 border-b border-slate-700">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-mono text-cyan-500 font-medium">{{ query.id }}</span>
               <span class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full border border-slate-600">
@@ -26,7 +26,7 @@
           </div>
 
           <!-- Código Prolog -->
-          <div class="px-5 py-4">
+          <div class="px-4 sm:px-5 py-4">
             <div class="flex items-center justify-between mb-2">
               <p class="text-xs text-slate-500 font-medium uppercase tracking-wide">Código Prolog</p>
             </div>
@@ -90,27 +90,27 @@
 
       <!-- Query libre -->
       <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-        <div class="flex items-center gap-2 px-5 py-4 border-b border-slate-700">
-          <Terminal class="w-4 h-4 text-cyan-400" />
+        <div class="flex items-center gap-2 px-4 sm:px-5 py-4 border-b border-slate-700">
+          <Terminal class="w-4 h-4 text-cyan-400 flex-shrink-0" />
           <h3 class="text-white font-semibold text-sm">Consulta Libre</h3>
           <span class="text-xs text-slate-500">(modo simulado)</span>
         </div>
-        <div class="px-5 py-4 space-y-3">
-          <div class="flex gap-3">
+        <div class="px-4 sm:px-5 py-4 space-y-3">
+          <div class="flex flex-col sm:flex-row gap-2">
             <div class="flex-1 flex items-center bg-slate-900 border border-slate-600 rounded-lg px-3 focus-within:border-cyan-500 transition-colors">
-              <span class="text-cyan-400 font-mono text-sm mr-2">?-</span>
+              <span class="text-cyan-400 font-mono text-sm mr-2 flex-shrink-0">?-</span>
               <input
                 v-model="freeQuery"
                 type="text"
                 placeholder="Escribe tu consulta Prolog aquí..."
-                class="flex-1 bg-transparent text-white text-sm py-2 focus:outline-none font-mono placeholder-slate-600"
+                class="flex-1 min-w-0 bg-transparent text-white text-sm py-2 focus:outline-none font-mono placeholder-slate-600"
                 @keydown.enter="runFreeQuery"
               />
             </div>
             <button
               @click="runFreeQuery"
               :disabled="freeLoading"
-              class="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
+              class="flex items-center justify-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
             >
               <div v-if="freeLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <Play v-else class="w-4 h-4" />

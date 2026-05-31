@@ -5,15 +5,15 @@
       subtitle="Informe de hallazgos críticos del análisis Prolog — exportable como PDF o texto plano"
     />
 
-    <div class="px-6 pb-6 space-y-6">
+    <div class="px-3 sm:px-6 pb-6 space-y-6">
       <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-4 border-b border-slate-700">
           <div class="flex items-center gap-2">
-            <FileText class="w-4 h-4 text-cyan-400" />
+            <FileText class="w-4 h-4 text-cyan-400 flex-shrink-0" />
             <h2 class="text-white font-semibold text-sm">Reporte de Auditoría de Seguridad</h2>
           </div>
 
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-wrap">
             <button
               @click="loadReport"
               :disabled="isGenerating"

@@ -1,12 +1,12 @@
 <template>
   <Teleport to="body">
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="$emit('close')" />
-      <div class="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl animate-slide-up">
+      <div class="relative w-full sm:max-w-md bg-slate-800 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl animate-slide-up">
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+        <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-700">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center flex-shrink-0">
               <Bell class="w-5 h-5 text-yellow-400" />
             </div>
             <div>
@@ -14,13 +14,13 @@
               <p class="text-slate-400 text-xs">Enviar alerta de seguridad al usuario</p>
             </div>
           </div>
-          <button @click="$emit('close')" class="text-slate-400 hover:text-white transition-colors">
+          <button @click="$emit('close')" class="text-slate-400 hover:text-white transition-colors flex-shrink-0">
             <X class="w-5 h-5" />
           </button>
         </div>
 
         <!-- Body -->
-        <div class="px-6 py-5 space-y-4">
+        <div class="px-4 sm:px-6 py-5 space-y-4">
           <div>
             <label class="block text-xs text-slate-400 mb-1.5 font-medium">Usuario</label>
             <input
@@ -61,7 +61,7 @@
           <!-- Preview -->
           <div v-if="form.user && form.message" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2.5">
             <p class="text-xs text-slate-500 mb-1">Vista previa:</p>
-            <p class="text-xs text-slate-300">
+            <p class="text-xs text-slate-300 break-words">
               <span class="text-yellow-400 font-medium">[ALERTA SEGURIDAD]</span>
               Usuario <span class="text-white font-mono">{{ form.user }}</span>: {{ form.message }}
             </p>
@@ -69,7 +69,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-700">
+        <div class="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-slate-700">
           <button @click="$emit('close')" class="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
             Cancelar
           </button>

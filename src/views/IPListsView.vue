@@ -5,7 +5,7 @@
       subtitle="Administrá las IPs de confianza (lista blanca) y las IPs bloqueadas (lista negra) del motor Prolog"
     />
 
-    <div class="px-6 pb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="px-3 sm:px-6 pb-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <!--  LISTA BLANCA                                                      -->
@@ -83,7 +83,7 @@
               <button
                 @click="removeWhitelist(entry.ip)"
                 :disabled="removingWL === entry.ip"
-                class="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
+                class="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
                 title="Eliminar de lista blanca"
               >
                 <div v-if="removingWL === entry.ip" class="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
@@ -182,7 +182,7 @@
               <button
                 @click="removeBlacklist(entry.ip)"
                 :disabled="removingBL === entry.ip"
-                class="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-all flex-shrink-0"
+                class="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-all flex-shrink-0"
                 title="Quitar de lista negra"
               >
                 <div v-if="removingBL === entry.ip" class="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
@@ -195,23 +195,12 @@
 
     </div>
 
-    <!-- Nota al pie -->
-    <div class="px-6 pb-6">
-      <div class="flex items-start gap-2 px-4 py-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
-        <AlertTriangle class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-        <p class="text-xs text-amber-200/70 leading-relaxed">
-          Los cambios son <span class="font-medium text-amber-300">inmediatos en el motor Prolog</span> pero se pierden si el servidor se reinicia,
-          ya que las listas iniciales se definen como hechos estáticos en <code class="font-mono text-amber-300">security_engine.pl</code>.
-          Para que los cambios sean permanentes, editá el archivo .pl directamente.
-        </p>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ShieldCheck, ShieldX, ShieldOff, RefreshCw, Plus, Trash2, AlertTriangle } from '@lucide/vue'
+import { ShieldCheck, ShieldX, ShieldOff, RefreshCw, Plus, Trash2 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import AppHeader from '../components/layout/AppHeader.vue'
 import { useIpListsStore } from '../stores/ipLists'

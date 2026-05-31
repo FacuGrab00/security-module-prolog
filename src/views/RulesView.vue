@@ -5,19 +5,19 @@
       subtitle="13 reglas lógicas Prolog para identificación de comportamientos anómalos — audit_engine.pl"
     />
 
-    <div class="px-6 pb-6 space-y-4">
+    <div class="px-3 sm:px-6 pb-6 space-y-4">
       <!-- Info -->
-      <div class="grid grid-cols-3 gap-4 text-center">
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-          <p class="text-2xl font-bold text-white">{{ rules.length }}</p>
+      <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
+        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
+          <p class="text-xl sm:text-2xl font-bold text-white">{{ rules.length }}</p>
           <p class="text-xs text-slate-400 mt-1">Reglas definidas</p>
         </div>
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-          <p class="text-2xl font-bold text-cyan-400">{{ categories.length }}</p>
+        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
+          <p class="text-xl sm:text-2xl font-bold text-cyan-400">{{ categories.length }}</p>
           <p class="text-xs text-slate-400 mt-1">Categorías</p>
         </div>
-        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-          <p class="text-2xl font-bold text-yellow-400">{{ totalTriggered }}</p>
+        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
+          <p class="text-xl sm:text-2xl font-bold text-yellow-400">{{ totalTriggered }}</p>
           <p class="text-xs text-slate-400 mt-1">Veces activadas</p>
         </div>
       </div>
@@ -36,7 +36,7 @@
       </div>
 
       <!-- Reglas -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
           v-for="rule in filteredRules"
           :key="rule.id"
@@ -44,12 +44,12 @@
           :class="rule.triggered > 0 ? 'border-yellow-500/30' : 'border-slate-700'"
         >
           <!-- Header -->
-          <div class="flex items-center justify-between px-5 py-3 border-b border-slate-700 bg-slate-800/80">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono text-slate-500">{{ rule.id }}</span>
-              <span class="text-sm font-mono font-semibold text-white">{{ rule.name }}</span>
+          <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-800/80">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs font-mono text-slate-500 flex-shrink-0">{{ rule.id }}</span>
+              <span class="text-sm font-mono font-semibold text-white truncate">{{ rule.name }}</span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-shrink-0">
               <span class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full">{{ rule.category }}</span>
               <span
                 v-if="rule.triggered > 0"
@@ -57,12 +57,11 @@
               >
                 {{ rule.triggered }}×
               </span>
-              <span v-else class="text-xs text-slate-600">0 triggers</span>
             </div>
           </div>
 
           <!-- Body -->
-          <div class="px-5 py-4">
+          <div class="px-4 sm:px-5 py-4">
             <p class="text-xs text-slate-400 mb-3 leading-relaxed">{{ rule.description }}</p>
             <PrologCode :code="rule.code" />
           </div>

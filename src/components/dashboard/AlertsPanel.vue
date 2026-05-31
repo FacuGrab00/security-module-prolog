@@ -1,9 +1,9 @@
 <template>
   <div class="bg-slate-800/50 border border-slate-700 rounded-xl flex flex-col">
     <!-- Header -->
-    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+    <div class="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-700">
       <div class="flex items-center gap-2">
-        <AlertTriangle class="w-4 h-4 text-red-400" />
+        <AlertTriangle class="w-4 h-4 text-red-400 flex-shrink-0" />
         <h2 class="text-white font-semibold text-sm">Alertas de Seguridad</h2>
         <span class="text-xs px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-300 border border-slate-500/30">
           {{ store.activeAlerts.length }} activas
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Lista -->
-    <div class="flex-1 overflow-y-auto max-h-[520px] p-3 space-y-2">
+    <div class="flex-1 overflow-y-auto max-h-[400px] sm:max-h-[520px] p-3 space-y-2">
       <div
         v-for="alert in filteredAlerts"
         :key="alert.id"
@@ -30,20 +30,20 @@
           <!-- Acento lateral -->
           <div class="w-1 flex-shrink-0 rounded-l-lg" :class="accentColor[alert.severity]" />
 
-          <div class="flex-1 px-4 py-3 min-w-0">
-            <!-- Título con etiqueta de severidad inline -->
-            <div class="flex items-baseline justify-between gap-2 mb-1">
-              <p class="text-sm font-semibold text-white leading-snug">
+          <div class="flex-1 px-3 sm:px-4 py-3 min-w-0">
+            <!-- Título y timestamp: apilados en mobile, en línea en desktop -->
+            <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-2 mb-1">
+              <p class="text-sm font-semibold text-white leading-snug min-w-0">
                 <span class="text-xs font-bold uppercase tracking-wide mr-1.5" :class="severityTextColor[alert.severity]">{{ severityLabel[alert.severity] }}</span>{{ alert.label }}
               </p>
-              <span class="text-xs text-slate-500 whitespace-nowrap flex-shrink-0">{{ alert.timestamp }}</span>
+              <span class="text-xs text-slate-500 flex-shrink-0">{{ alert.timestamp }}</span>
             </div>
 
             <!-- Descripción -->
             <p class="text-xs text-slate-400 leading-relaxed mb-3">{{ alert.description }}</p>
 
             <!-- Acciones -->
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <button
                 v-if="alertIP(alert)"
                 @click="emit('block-ip', alertIP(alert)!, alert)"
@@ -59,7 +59,7 @@
               </button>
               <button
                 @click="selected = alert"
-                class="flex items-center gap-1.5 px-2.5 py-1 text-slate-500 hover:text-cyan-400 text-xs rounded-md transition-colors ml-auto"
+                class="flex items-center gap-1.5 px-2.5 py-1 text-slate-500 hover:text-cyan-400 text-xs rounded-md transition-colors sm:ml-auto"
               >
                 <Info class="w-3 h-3" />Ver detalles
               </button>
@@ -77,28 +77,28 @@
 
   <!-- Dialog de detalles -->
   <Teleport to="body">
-    <div v-if="selected" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div v-if="selected" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="selected = null" />
-      <div class="relative w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl">
+      <div class="relative w-full sm:max-w-lg bg-slate-800 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
 
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+        <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
               <Info class="w-5 h-5 text-cyan-400" />
             </div>
-            <div>
+            <div class="min-w-0">
               <h3 class="text-white font-semibold">Detalles de la alerta</h3>
               <p class="text-slate-400 text-xs font-mono">{{ selected.id }}</p>
             </div>
           </div>
-          <button @click="selected = null" class="text-slate-400 hover:text-white transition-colors">
+          <button @click="selected = null" class="text-slate-400 hover:text-white transition-colors flex-shrink-0">
             <X class="w-5 h-5" />
           </button>
         </div>
 
         <!-- Body -->
-        <div class="px-6 py-5 space-y-4">
+        <div class="px-4 sm:px-6 py-5 space-y-4">
 
           <!-- Chips de estado -->
           <div class="flex items-center gap-2 flex-wrap">
@@ -106,15 +106,15 @@
             <StatusBadge :status="selected.status" />
           </div>
 
-          <!-- Campos dinámicos según tipo de alerta -->
-          <div class="grid grid-cols-2 gap-3">
+          <!-- Campos dinámicos -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
               <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Clock class="w-3 h-3" />Detectada</p>
               <p class="text-sm text-white">{{ selected.timestamp }}</p>
             </div>
             <div class="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3">
               <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5"><Tag class="w-3 h-3" />Tipo</p>
-              <p class="text-sm text-white">{{ selected.label }}</p>
+              <p class="text-sm text-white break-words">{{ selected.label }}</p>
             </div>
 
             <template v-for="field in alertFields(selected)" :key="field.label">
@@ -122,7 +122,7 @@
                 <p class="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
                   <component :is="field.icon" class="w-3 h-3" />{{ field.label }}
                 </p>
-                <p class="text-sm text-white" :class="field.mono ? 'font-mono' : ''">{{ field.value }}</p>
+                <p class="text-sm text-white break-all" :class="field.mono ? 'font-mono' : ''">{{ field.value }}</p>
               </div>
             </template>
 
@@ -141,7 +141,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="flex justify-end px-6 py-4 border-t border-slate-700">
+        <div class="flex justify-end px-4 sm:px-6 py-4 border-t border-slate-700">
           <button
             @click="selected = null"
             class="px-4 py-2 text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors"
@@ -238,8 +238,8 @@ function alertFields(a: SecurityAlert): Field[] {
       ]
     case 'actividad_red_dispersa':
       return [
-        { label: 'Usuario',   value: a.payload.user,                     icon: User, mono: true  },
-        { label: 'Subredes',  value: String(a.payload.subnet_count),      icon: Globe, mono: false },
+        { label: 'Usuario',   value: a.payload.user,                icon: User,  mono: true  },
+        { label: 'Subredes',  value: String(a.payload.subnet_count), icon: Globe, mono: false },
       ]
     case 'descarga_masiva':
       return [

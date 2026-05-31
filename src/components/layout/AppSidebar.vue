@@ -1,5 +1,15 @@
 <template>
-  <aside class="fixed left-0 top-0 h-full w-64 bg-dark-900 border-r border-slate-800 flex flex-col z-30">
+  <!-- Backdrop (mobile only) -->
+  <div
+    v-if="sidebar.open.value"
+    class="fixed inset-0 bg-black/60 z-20 md:hidden"
+    @click="sidebar.close"
+  />
+
+  <aside
+    class="fixed left-0 top-0 h-full w-64 bg-dark-900 border-r border-slate-800 flex flex-col z-30 transition-transform duration-300"
+    :class="sidebar.open.value ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+  >
     <!-- Logo -->
     <div class="px-6 py-5 border-b border-slate-800">
       <div class="flex items-center gap-3">
@@ -23,6 +33,7 @@
         :class="isActive(item.to)
           ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
           : 'text-slate-400 hover:text-white hover:bg-slate-800'"
+        @click="sidebar.close"
       >
         <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
         <span>{{ item.label }}</span>
@@ -42,15 +53,17 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Shield, LayoutDashboard, ScrollText, Search, BookOpen, FileText, ShieldHalf } from '@lucide/vue'
 import { useAlertsStore } from '../../stores/alerts'
+import { useSidebar } from '../../composables/useSidebar'
 
-const route  = useRoute()
-const store  = useAlertsStore()
-const active = computed(() => store.activeAlerts.length)
+const route   = useRoute()
+const store   = useAlertsStore()
+const sidebar = useSidebar()
+const active  = computed(() => store.activeAlerts.length)
 
 const navItems = computed(() => [
-  { to: '/',        label: 'Dashboard',     icon: LayoutDashboard, badge: active.value > 0 ? active.value : null, badgeColor: 'bg-red-500/20 text-red-400' },
+  { to: '/',        label: 'Dashboard',      icon: LayoutDashboard, badge: active.value > 0 ? active.value : null, badgeColor: 'bg-red-500/20 text-red-400' },
   { to: '/logs',    label: 'Logs de Acceso', icon: ScrollText },
-  { to: '/queries', label: 'Consultas Prolog',icon: Search },
+  { to: '/queries', label: 'Consultas Prolog', icon: Search },
   { to: '/rules',   label: 'Base de Reglas', icon: BookOpen },
   { to: '/listas',  label: 'Listas de IPs',  icon: ShieldHalf },
   { to: '/report',  label: 'Reporte',        icon: FileText },

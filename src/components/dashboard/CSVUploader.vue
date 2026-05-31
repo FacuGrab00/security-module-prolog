@@ -1,14 +1,14 @@
 <template>
   <div class="bg-slate-800/50 border border-slate-700 rounded-xl">
-    <div class="flex items-center gap-2 px-5 py-4 border-b border-slate-700">
-      <Upload class="w-4 h-4 text-cyan-400" />
+    <div class="flex items-center gap-2 px-4 sm:px-5 py-4 border-b border-slate-700">
+      <Upload class="w-4 h-4 text-cyan-400 flex-shrink-0" />
       <h2 class="text-white font-semibold text-sm">Ingesta de Datos CSV</h2>
     </div>
 
-    <div class="px-5 py-4 space-y-4">
+    <div class="px-4 sm:px-5 py-4 space-y-4">
       <!-- Zona de drop -->
       <div
-        class="border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer"
+        class="border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all cursor-pointer"
         :class="isDragging
           ? 'border-cyan-500 bg-cyan-500/10'
           : 'border-slate-600 hover:border-slate-500 hover:bg-slate-700/30'"
