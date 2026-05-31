@@ -17,7 +17,7 @@
         </div>
         <div class="text-right flex-shrink-0">
           <p class="text-xs text-slate-500">Expira:</p>
-          <p class="text-xs" :class="b.expiresAt === 'Permanente' ? 'text-red-400' : 'text-slate-300'">
+          <p class="text-xs" :class="expiresClass(b.expiresAt)">
             {{ b.expiresAt ?? '—' }}
           </p>
         </div>
@@ -31,8 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import {ShieldOff} from '@lucide/vue'
-import {useIpListsStore} from '../../stores/ipLists'
+import { ShieldOff } from '@lucide/vue';
+import { useIpListsStore } from '../../stores/ipLists';
 
-const store = useIpListsStore()
+const store = useIpListsStore();
+
+function expiresClass(expiresAt: string | undefined): string {
+  return expiresAt === 'Permanente' ? 'text-red-400' : 'text-slate-300';
+}
 </script>

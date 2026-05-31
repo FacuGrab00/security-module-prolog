@@ -37,11 +37,6 @@
       >
         <component :is="item.icon" class="w-4 h-4 flex-shrink-0"/>
         <span>{{ item.label }}</span>
-        <span
-            v-if="item.badge"
-            class="ml-auto text-xs px-1.5 py-0.5 rounded-full"
-            :class="item.badgeColor ?? 'bg-slate-700 text-slate-300'"
-        >{{ item.badge }}</span>
       </RouterLink>
     </nav>
 

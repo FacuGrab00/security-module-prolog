@@ -1,11 +1,6 @@
 <template>
-  <div
-      class="bg-slate-800/50 border rounded-xl overflow-hidden transition-all"
-      :class="rule.triggered > 0 ? 'border-yellow-500/30' : 'border-slate-700'"
-  >
-    <!-- Header -->
-    <div
-        class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-800/80">
+  <div class="bg-slate-800/50 border rounded-xl overflow-hidden transition-all" :class="borderClass">
+    <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-800/80">
       <div class="flex items-center gap-2 min-w-0">
         <span class="text-xs font-mono text-slate-500 flex-shrink-0">{{ rule.id }}</span>
         <span class="text-sm font-mono font-semibold text-white truncate">{{ rule.name }}</span>
@@ -17,8 +12,6 @@
         </span>
       </div>
     </div>
-
-    <!-- Body -->
     <div class="px-4 sm:px-5 py-4">
       <p class="text-xs text-slate-400 mb-3 leading-relaxed">{{ rule.description }}</p>
       <PrologCode :code="rule.code"/>
@@ -27,8 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import PrologCode from './PrologCode.vue'
-import type {PrologRule} from '../../types'
+import { computed } from 'vue';
+import PrologCode from './PrologCode.vue';
+import type { PrologRule } from '../../types';
 
-defineProps<{ rule: PrologRule }>()
+const props = defineProps<{ rule: PrologRule }>();
+
+const borderClass = computed(() => props.rule.triggered > 0 ? 'border-yellow-500/30' : 'border-slate-700');
 </script>

@@ -3,7 +3,8 @@
     <select
         :value="modelValue"
         @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
-        class="appearance-none bg-slate-900 border border-slate-600 text-slate-300 rounded-lg pl-3 pr-7 py-1.5 text-xs focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer w-full"
+        :class="size === 'md' ? 'py-2 text-sm' : 'py-1.5 text-xs'"
+        class="appearance-none bg-slate-900 border border-slate-600 text-slate-300 rounded-lg pl-3 pr-7 focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer w-full"
     >
       <option v-for="opt in options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
     </select>
@@ -14,10 +15,11 @@
 <script setup lang="ts">
 import {ChevronDown} from '@lucide/vue'
 
-defineProps<{
+withDefaults(defineProps<{
   modelValue: string
-  options: { value: string; label: string }[]
-}>()
+  options:    { value: string; label: string }[]
+  size?:      'sm' | 'md'
+}>(), { size: 'sm' })
 
 defineEmits<{ 'update:modelValue': [value: string] }>()
 </script>

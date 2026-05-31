@@ -127,7 +127,10 @@ async function add() {
       toast.success(`${val} agregada a la lista blanca`, {duration: 4000});
       ip.value = '';
     } else if (body.error) {
-      toast.error('Motor Prolog no disponible', {description: 'Reiniciá el servidor con: swipl server.pl', duration: 7000});
+      toast.error('Motor Prolog no disponible', {
+        description: 'Reiniciá el servidor con: swipl server.pl',
+        duration: 7000
+      });
     } else {
       toast.warning(String(body.message ?? 'La IP ya está en la lista'), {duration: 5000});
     }

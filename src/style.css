@@ -47,7 +47,7 @@ body {
 
     /* Header de sección dentro de una card */
     .app-card-header {
-        @apply flex items-center justify-between px-4 sm:px-5 py-4 border-b border-slate-700;
+        @apply flex items-center gap-2 px-4 sm:px-5 py-4 border-b border-slate-700;
     }
 
     /* Título de sección */
