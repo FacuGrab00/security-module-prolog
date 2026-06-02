@@ -45,12 +45,15 @@ import BlockIPModal from '../components/actions/BlockIPModal.vue'
 import {useAppStore} from '../stores/app'
 import type {SecurityAlert} from '../types'
 
-const store = useAppStore()
-const blockModal = reactive<{ open: boolean; ip: string; alert: SecurityAlert | null }>({
-  open: false, ip: '', alert: null,
-})
+const store = useAppStore();
 
-onMounted(() => store.fetchAll())
+const blockModal = reactive<{ open: boolean; ip: string; alert: SecurityAlert | null; }>({
+  open: false,
+  ip: '',
+  alert: null,
+});
+
+onMounted(() => store.fetchAll());
 
 function openBlockModal(ip: string, alert: SecurityAlert) {
   blockModal.ip = ip;

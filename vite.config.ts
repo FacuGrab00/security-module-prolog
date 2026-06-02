@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue()],
     server: {
+      host: true,
       port: frontendPort,
       proxy: {
         '/api': {

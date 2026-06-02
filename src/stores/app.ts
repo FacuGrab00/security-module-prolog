@@ -101,9 +101,14 @@ export const useAppStore = defineStore('app', () => {
         return String(body.result ?? body.error ?? '')
     }
 
-    async function runFreeQuery(query: string): Promise<{ok: boolean; result?: string; solutions?: number; error?: string}> {
+    async function runFreeQuery(query: string): Promise<{
+        ok: boolean;
+        result?: string;
+        solutions?: number;
+        error?: string
+    }> {
         const body = await postJson('/api/free_query', {query});
-        return body as {ok: boolean; result?: string; solutions?: number; error?: string};
+        return body as { ok: boolean; result?: string; solutions?: number; error?: string };
     }
 
     return {
