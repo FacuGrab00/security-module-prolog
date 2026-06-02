@@ -37,6 +37,7 @@ rol_usuario(user_c,         usuario_normal).
 rol_usuario(mperez,         usuario_normal).
 rol_usuario(jgonzalez,      usuario_normal).
 rol_usuario(lrodriguez,     usuario_normal).
+rol_usuario(cgarcia,        usuario_normal).
 rol_usuario(attacker,       usuario_normal).
 
 % --- HORARIO LABORAL ---------------------------------------------------------

@@ -2,6 +2,7 @@ timestamp,usuario,ip,accion,resultado
 1779674400,admin_ti,192.168.0.10,login,exito
 1779696060,jgonzalez,192.168.1.45,login,exito
 1779696120,jgonzalez,192.168.1.45,descarga,exito
+1779697800,jgonzalez,192.168.1.45,login,exito
 1779699600,mperez,192.168.1.50,login,exito
 1779699700,mperez,192.168.1.50,descarga,exito
 1779703200,jgonzalez,203.0.113.45,login,fallo
